@@ -18,6 +18,12 @@ export class Account {
   @Column({ type: 'text' })
   keystore: string;
 
+  @Column({
+    default: 0,
+    nullable: false,
+  })
+  nonce: number;
+
   @CreateDateColumn()
   created_at: Date;
 
