@@ -4,7 +4,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Token } from './Token';
 
 @Entity()
 export class Account {
@@ -23,6 +26,12 @@ export class Account {
     nullable: false,
   })
   nonce: number;
+
+  @OneToOne(
+    () => Token,
+    t => t.owner,
+  )
+  issuedToken: Token;
 
   @CreateDateColumn()
   created_at: Date;
