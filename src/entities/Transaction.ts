@@ -1,3 +1,4 @@
+import { TransactionStatus } from '../types';
 import {
   Entity,
   Column,
@@ -6,19 +7,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Account } from './Account';
 
 export enum TransactionType {
   TRANSFER = 'transfer', // use `transferFromBySig()`
   MINT = 'mint', // use `mintBySig()`
   APPROVE = 'approve', // use `permit()`
-}
-
-export enum TransactionStatus {
-  PENDING = 'pending',
-  SENDING = 'sending',
-  SUCCESS = 'success',
-  REVERTED = 'reverted',
 }
 
 @Entity()
