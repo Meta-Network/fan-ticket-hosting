@@ -1,11 +1,42 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import * as fs from 'fs';
 import { WalletModule } from './wallet/wallet.module';
 import { TokenModule } from './token/token.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from './config/configuration';
 
 @Module({
-  imports: [WalletModule, TokenModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('db.host'),
+        ssl: {
+          ca: fs.readFileSync('./rds-ca-2019-root.pem', 'utf8').toString(),
+        },
+        port: configService.get<number>('db.port', 3306),
+        connectTimeout: 60 * 60 * 1000,
+        acquireTimeout: 60 * 60 * 1000,
+        username: configService.get<string>('db.username'),
+        password: configService.get<string>('db.password'),
+        database: configService.get<string>('db.database'),
+        autoLoadEntities: true,
+        entities: [],
+        synchronize: false,
+      }),
+    }),
+    WalletModule,
+    TokenModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
