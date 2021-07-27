@@ -5,9 +5,12 @@ import { WalletService } from './wallet.service';
 export class WalletController {
   constructor(private service: WalletService) {}
 
-  @Post(':id')
-  async createWallet(@Param('id', ParseIntPipe) id: number) {
-    const wallet = await this.service.createWalletFor(id, 'foobar');
+  @Post(':id/:password')
+  async createWallet(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('password') password: string,
+  ) {
+    const wallet = await this.service.createWalletFor(id, password);
     return { message: 'ok' };
   }
 }
