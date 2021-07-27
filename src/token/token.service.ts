@@ -86,11 +86,14 @@ export class TokenService {
   }
 
   private async checkIsLegitToCreate(symbol: string, owner: Account): Promise<void> {
+    const matchedOwner = await this.tokenRepo.findOne({ owner: { id: owner.id } });
+    if (matchedOwner) {
+      throw new ConflictException("Sorry, you have a token already.")
+    }
     const matched = await this.tokenRepo.findOne({ symbol });
     if (matched) {
       throw new ConflictException("Sorry, but this symbol was taken by others.")
     }
-    // @todo: check is `owner` have token
   }
 
   async create(
