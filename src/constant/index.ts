@@ -1,4 +1,4 @@
-require('dotenv').config();
+import configuration from '../config/configuration';
 
 export enum ChainId {
   MAINNET = 1,
@@ -16,4 +16,5 @@ export enum ChainId {
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-export const currentChainId = Number(process.env.CHAIN_ID || 97) as ChainId;
+export const currentChainId = (configuration().app.chainId || 97) as ChainId;
+console.info(`Running On ChainId: ${currentChainId}`);
