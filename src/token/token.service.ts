@@ -39,58 +39,6 @@ export class TokenService {
     this.logger.verbose(`Operator Wallet is ${this.#operatorWallet.address}`)
   }
 
-  async handleTokenIssueRequest(): Promise<void> {
-    const tokensNeedToDeploy = await this.tokenRepo.find({
-      where: { status: TransactionStatus.PENDING },
-      relations: [ 'owner' ]
-    })
-    if (tokensNeedToDeploy.length === 0)
-      return // skip then
-    
-    const notPendingTokens = tokensNeedToDeploy.filter(
-      t => t.status !== TransactionStatus.PENDING,
-    );
-    if (notPendingTokens.length > 0) {
-      this.logger.verbose(
-        `Not Pending Token Ids: ${notPendingTokens.map(t => t.id).join(', ')}`,
-      );
-      throw new Error('handleTokenIssueRequest only receives PENDING tokens. ');
-    }
-
-    const calls: Array<{
-      target: string;
-      callData: string;
-    }> = tokensNeedToDeploy.map(t => {
-      const callData = this.factoryContract.interface.encodeFunctionData('newAPeggedToken', [
-        t.name,
-        t.symbol,
-        t.owner.address,
-        t.totalSupply,
-        t.id,
-        t.v,
-        t.r,
-        t.s,
-      ]);
-      return { target: this.factoryContract.address, callData }
-    })
-    const multicall = Multicall__factory.connect(currentMulticall, this.#operatorWallet);
-    // try with call static to see is there anything wrong.
-    const estimatedGas = await multicall.estimateGas.aggregate(calls);
-    this.logger.verbose(`Estimated Gas for deploying ${calls.length} token(s): ${estimatedGas.toString()}`)
-    // 1 blockchain call, that includes all these creations call
-    const tx = await multicall.aggregate(calls);
-    const hash = tx.hash
-    const deployed = tokensNeedToDeploy.map(t => {
-      return { ...t, txHash: hash, status: TransactionStatus.SENDING }
-    })
-    console.info('deployed', deployed)
-    
-    // update their status to `TransactionStatus.SENDING` with TxHash
-    await this.tokenRepo.update({ id: In(deployed.map(t => t.id)) }, {
-      txHash: hash, status: TransactionStatus.SENDING
-    });
-  }
-
   private async checkIsLegitToCreate(symbol: string, owner: Account): Promise<void> {
     const matchedOwner = await this.tokenRepo.findOne({ owner: { id: owner.id } });
     if (matchedOwner) {

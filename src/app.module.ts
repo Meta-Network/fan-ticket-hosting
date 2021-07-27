@@ -8,8 +8,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { Account } from './entities/Account';
+import { ScheduleModule } from '@nestjs/schedule';
 import { Token } from './entities/Token';
 import { OutTransaction } from './entities/OutTransaction';
+import { CronModule } from './cron/cron.module';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { OutTransaction } from './entities/OutTransaction';
       isGlobal: true,
       load: [configuration],
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -38,6 +41,7 @@ import { OutTransaction } from './entities/OutTransaction';
     }),
     WalletModule,
     TokenModule,
+    CronModule,
   ],
   controllers: [AppController],
   providers: [AppService],
