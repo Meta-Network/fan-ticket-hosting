@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BigNumber } from 'ethers';
 import { Wallet } from 'ethers';
 import { currentContracts, currentMulticall } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
@@ -11,6 +10,7 @@ import { TransactionStatus } from 'src/types';
 import { FanTicketFactory, FanTicketFactory__factory } from 'src/types/contracts';
 import { Multicall__factory } from 'src/types/contracts/MulticallFactory';
 import { Repository, In } from 'typeorm';
+import { GasLimitService } from '../gas-limit/gas-limit.service';
 
 @Injectable()
 export class TokenService {
@@ -18,14 +18,12 @@ export class TokenService {
     logger: Logger;
     factoryContract: FanTicketFactory;
 
-    latestSafeGasLimit: BigNumber;
-
     constructor(
         @InjectRepository(Token)
         private readonly tokenRepo: Repository<Token>,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly gasService: GasLimitService,        
     ) {
-        this.updateLatestGasLimit()
         this.factoryContract = FanTicketFactory__factory.connect(
             currentContracts.Factory,
             currentProvider,
@@ -35,7 +33,7 @@ export class TokenService {
         this.#operatorWallet = new Wallet(privateKey, currentProvider)
         this.logger.verbose(`Operator Wallet is ${this.#operatorWallet.address}`)
     }
-        
+
     @Cron(CronExpression.EVERY_5_MINUTES)
     async handleTokenIssueRequest(): Promise<void> {
         let tokensNeedToDeploy = await this.tokenRepo.find({
@@ -46,7 +44,7 @@ export class TokenService {
         if (tokensNeedToDeploy.length === 0)
             return // skip then
         
-        const approximateMaxTokenQtyInTx = this.latestSafeGasLimit.div("2000000").toBigInt()
+        const approximateMaxTokenQtyInTx = this.gasService.latestSafeGasLimit.div("2000000").toBigInt()
         this.logger.verbose(`Estimated Max Qty for token creation: ${approximateMaxTokenQtyInTx}`)
         if (tokensNeedToDeploy.length > approximateMaxTokenQtyInTx) {
             this.logger.verbose(`slicing tokensNeedToDeploy to len(${Number(approximateMaxTokenQtyInTx)})`)
@@ -61,9 +59,6 @@ export class TokenService {
             );
             throw new Error('handleTokenIssueRequest only receives PENDING tokens. ');
         }
-
-        // const approximateMaxTokenQtyInTx = this.latestSafeGasLimit.div("2000000").toBigInt()
-        // this.logger.verbose(`Estimated Max Qty for token creation: ${approximateMaxTokenQtyInTx}`)
 
         const calls: Array<{
             target: string;
@@ -96,14 +91,6 @@ export class TokenService {
         await this.tokenRepo.update({ id: In(deployed.map(t => t.id)) }, {
             txHash: hash, status: TransactionStatus.SENDING
         });
-  }
-
-  @Cron(CronExpression.EVERY_MINUTE)
-  async updateLatestGasLimit(): Promise<void> {
-    const block = await currentProvider.getBlock('latest');
-    // set 75% of current gaslimit as safe line
-    this.latestSafeGasLimit = block.gasLimit.div(100).mul(75);
-    this.logger.verbose(`latestSafeGasLimit updated to ${this.latestSafeGasLimit.toString()}`)
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
