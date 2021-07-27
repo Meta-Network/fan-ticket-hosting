@@ -6,8 +6,11 @@ import {
   PrimaryColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
+  Transaction,
 } from 'typeorm';
 import { Token } from './Token';
+import { OutTransaction } from './OutTransaction';
 
 @Entity()
 export class Account {
@@ -32,6 +35,12 @@ export class Account {
     t => t.owner,
   )
   issuedToken: Token;
+
+  @OneToMany(
+    () => OutTransaction,
+    t => t.from,
+  )
+  sentTransactions: OutTransaction[];
 
   @CreateDateColumn()
   created_at: Date;

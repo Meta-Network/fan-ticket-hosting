@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Token } from './Token';
+import { Account } from './Account';
 
 export enum TransactionType {
   TRANSFER = 'transfer', // use `transferFromBySig()`
@@ -16,7 +17,7 @@ export enum TransactionType {
 }
 
 @Entity()
-export class Transaction {
+export class OutTransaction {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,11 +31,12 @@ export class Transaction {
   )
   token: Token;
 
-  @Column({
-    type: 'char',
-    length: 42,
-  })
-  from: string;
+  @ManyToOne(
+    () => Account,
+    acc => acc.sentTransactions,
+    { nullable: false },
+  )
+  from: Account;
 
   // `to` can be anything, as long it's an eth address
   @Column({

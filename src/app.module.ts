@@ -9,7 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { Account } from './entities/Account';
 import { Token } from './entities/Token';
-import { Transaction } from './entities/Transaction';
+import { OutTransaction } from './entities/OutTransaction';
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { Transaction } from './entities/Transaction';
         password: configService.get<string>('db.password'),
         database: configService.get<string>('db.database'),
         autoLoadEntities: true,
-        entities: [Account, Token, Transaction],
+        entities: [Account, Token, OutTransaction],
         synchronize: false,
       }),
     }),

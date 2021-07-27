@@ -10,7 +10,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Account } from './Account';
-import { Transaction } from './Transaction';
+import { OutTransaction } from './OutTransaction';
 
 @Entity()
 export class Token {
@@ -77,10 +77,10 @@ export class Token {
   status: TransactionStatus;
 
   @OneToMany(
-    () => Transaction,
+    () => OutTransaction,
     t => t.token,
   )
-  transactions: Transaction[];
+  transactions: OutTransaction[];
 
   @CreateDateColumn()
   created_at: Date;
