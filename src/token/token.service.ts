@@ -44,6 +44,9 @@ export class TokenService {
       where: { status: TransactionStatus.PENDING },
       relations: [ 'owner' ]
     })
+    if (tokensNeedToDeploy.length === 0)
+      return // skip then
+    
     const notPendingTokens = tokensNeedToDeploy.filter(
       t => t.status !== TransactionStatus.PENDING,
     );
