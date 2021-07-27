@@ -7,6 +7,9 @@ import { TokenModule } from './token/token.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
+import { Account } from './entities/Account';
+import { Token } from './entities/Token';
+import { Transaction } from './entities/Transaction';
 
 @Module({
   imports: [
@@ -25,12 +28,11 @@ import configuration from './config/configuration';
         },
         port: configService.get<number>('db.port', 3306),
         connectTimeout: 60 * 60 * 1000,
-        acquireTimeout: 60 * 60 * 1000,
         username: configService.get<string>('db.username'),
         password: configService.get<string>('db.password'),
         database: configService.get<string>('db.database'),
         autoLoadEntities: true,
-        entities: [],
+        entities: [Account, Token, Transaction],
         synchronize: false,
       }),
     }),
