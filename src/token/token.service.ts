@@ -1,24 +1,81 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BigNumber } from 'ethers';
 import { Wallet } from 'ethers';
-import { currentContracts } from 'src/constant/contracts';
-import { currentProvider } from 'src/constant/providers';
+import { Token } from '../entities/Token';
+import { currentContracts, currentMulticall } from '../constant/contracts';
+import { currentProvider } from '../constant/providers';
+import { TransactionStatus } from '../types';
 import {
   FanTicketFactory,
   FanTicketFactory__factory,
   FanTicketV2__factory,
 } from '../types/contracts';
 import { PermitService } from './permits';
+import { Multicall__factory } from 'src/types/contracts/MulticallFactory';
 
 @Injectable()
 export class TokenService {
+  #operatorWallet: Wallet;
+  logger: Logger;
+
   factoryContract: FanTicketFactory;
 
-  constructor() {
+  constructor(
+    private readonly configService: ConfigService
+  ) {
     this.factoryContract = FanTicketFactory__factory.connect(
       currentContracts.Factory,
       currentProvider,
     );
+    this.logger = new Logger('TokenService')
+    const privateKey = configService.get<string>('operatorWallet.privateKey');
+    this.#operatorWallet = new Wallet(privateKey, currentProvider)
+    this.logger.verbose(`Operator Wallet is ${this.#operatorWallet.address}`)
+  }
+
+  async handleTokenIssueRequest(tokensNeedToDeploy: Token[]): Promise<void> {
+    // anti fool design
+    // PENDING = not sent yet
+    const notPendingTokens = tokensNeedToDeploy.filter(
+      t => t.status !== TransactionStatus.PENDING,
+    );
+    if (notPendingTokens.length > 0) {
+      this.logger.verbose(
+        `Not Pending Token Ids: ${notPendingTokens.map(t => t.id).join(', ')}`,
+      );
+      throw new Error('handleTokenIssueRequest only receives PENDING tokens. ');
+    }
+
+    const calls: Array<{
+      target: string;
+      callData: string;
+    }> = tokensNeedToDeploy.map(t => {
+      const callData = this.factoryContract.interface.encodeFunctionData('newAPeggedToken', [
+        t.name,
+        t.symbol,
+        t.owner.address,
+        t.totalSupply,
+        t.id,
+        t.v,
+        t.r,
+        t.s,
+      ]);
+      return { target: this.factoryContract.address, callData }
+    })
+    const multicall = Multicall__factory.connect(currentMulticall, this.#operatorWallet);
+    // try with call static to see is there anything wrong.
+    const estimatedGas = await multicall.estimateGas.aggregate(calls);
+    this.logger.verbose(`Estimated Gas for deploying ${calls.length} token(s): ${estimatedGas.toString()}`)
+
+    const tx = await multicall.aggregate(calls);
+    const hash = tx.hash
+    const deployed = tokensNeedToDeploy.map(t => {
+      return { ...t, txHash: hash, status: TransactionStatus.SENDING }
+    })
+    console.info('deployed', deployed)
+    // @todo: update their status to `TransactionStatus.SENDING` with TxHash
+    // this.xxxrepo.update/save(deployed);
   }
 
   async create(
