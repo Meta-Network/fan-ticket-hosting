@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BigNumber } from 'ethers';
 import { Wallet } from 'ethers';
+import { currentContracts } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
 import {
   FanTicketFactory,
@@ -14,9 +15,8 @@ export class TokenService {
   factoryContract: FanTicketFactory;
 
   constructor() {
-    const factoryAddress = '0x...';
     this.factoryContract = FanTicketFactory__factory.connect(
-      factoryAddress,
+      currentContracts.Factory,
       currentProvider,
     );
   }
