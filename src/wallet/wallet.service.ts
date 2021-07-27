@@ -3,15 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'ethers';
 import { Logger } from '@nestjs/common';
-import { currentProvider } from 'src/constant/providers';
 import { Account } from 'src/entities/Account';
 import { Repository } from 'typeorm';
-import { Token } from '../entities/Token';
-import { TransactionStatus } from 'src/types';
 
 @Injectable()
 export class WalletService {
