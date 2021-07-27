@@ -29,4 +29,10 @@ export class TokenController {
     );
     return { msg: 'ok' };
   }
+
+  @Post('')
+  async batchIssue() {
+    await this.service.handleTokenIssueRequest();
+    return { msg: 'ok' };
+  }
 }

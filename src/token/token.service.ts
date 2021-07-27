@@ -40,7 +40,10 @@ export class TokenService {
   }
 
   async handleTokenIssueRequest(): Promise<void> {
-    const tokensNeedToDeploy = await this.tokenRepo.find({ status: TransactionStatus.PENDING })
+    const tokensNeedToDeploy = await this.tokenRepo.find({
+      where: { status: TransactionStatus.PENDING },
+      relations: [ 'owner' ]
+    })
     const notPendingTokens = tokensNeedToDeploy.filter(
       t => t.status !== TransactionStatus.PENDING,
     );
