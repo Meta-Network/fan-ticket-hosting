@@ -120,9 +120,7 @@ export class TokenService {
       initialSupply,
     );
     token = { ...token, r: permit.r, s: permit.s, v: permit.v }
-    // @todo: write permit to DB and use multicall to `newAPeggedToken`
     await this.tokenRepo.save(token)
-    // return tx.hash;
   }
 
   async transfer(
