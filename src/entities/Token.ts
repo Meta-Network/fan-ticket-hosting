@@ -66,6 +66,7 @@ export class Token {
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true,
   })
   txHash: string;
 
