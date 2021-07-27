@@ -1,4 +1,4 @@
-import { BigNumberish } from "ethers";
+import { BigNumberish } from 'ethers';
 
 export type TransferOrder = {
   token: string;
@@ -7,7 +7,7 @@ export type TransferOrder = {
   value: BigNumberish;
   isMint: false;
   deadline: BigNumberish;
-  v: BigNumberish;
+  v: number;
   r: string;
   s: string;
 };
@@ -19,7 +19,7 @@ export type MintOrder = {
   value: BigNumberish;
   isMint: true;
   deadline: BigNumberish;
-  v: BigNumberish;
+  v: number;
   r: string;
   s: string;
 };
@@ -32,7 +32,7 @@ export type CreationPermit = {
   owner: string;
   tokenId: BigNumberish;
   initialSupply: BigNumberish;
-  v: BigNumberish;
+  v: number;
   r: string;
   s: string;
 };
