@@ -20,10 +20,13 @@ export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: false })
+  tokenId: number;
+
   @ManyToOne(
     () => Token,
     t => t.transactions,
-    { eager: true, nullable: false },
+    { nullable: false },
   )
   token: Token;
 
