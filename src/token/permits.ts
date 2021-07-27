@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, utils, Wallet } from "ethers";
+import { currentChainId } from "../constant";
 import type { FanTicketFactory } from "../types/contracts/FanTicketFactory";
 import type { FanTicketV2 } from "../types/contracts/FanTicketV2";
 import {
@@ -26,7 +27,7 @@ export class PermitService {
         return whichFn(token, from, to, value, nonce);
     }
 
-    static async  TransferOrderConstuctor(
+    static async TransferOrderConstuctor(
         token: FanTicketV2,
         from: Wallet,
         to: string,
@@ -35,7 +36,7 @@ export class PermitService {
         validPeriod = 3600
     ): Promise<TransferOrder> {
         const deadline = this.getDeadline(validPeriod);
-        const chainId = await from.getChainId();
+        const chainId = currentChainId;
 
         const signature = await from._signTypedData(
         {
@@ -79,7 +80,7 @@ export class PermitService {
         };
     }
 
-    static async  MintOrderConstuctor(
+    static async MintOrderConstuctor(
         token: FanTicketV2,
         from: Wallet,
         to: string,
@@ -87,7 +88,7 @@ export class PermitService {
         nonce: number
     ): Promise<MintOrder> {
         const deadline = this.getDeadline();
-        const chainId = await from.getChainId();
+        const chainId = currentChainId;
 
         const signature = await from._signTypedData(
         {
@@ -139,7 +140,7 @@ export class PermitService {
         targetAmount: BigNumber,
         validPeriod = 3600
     ) {
-        const chainId = await theOwner.getChainId();
+        const chainId = currentChainId;
         const deadline = this.getDeadline(validPeriod);
         const ownerAddress = await theOwner.getAddress();
         await fanTicket.mint(ownerAddress, targetAmount);
@@ -196,7 +197,7 @@ export class PermitService {
         tokenId: number,
         initialSupply: BigNumberish = 0
     ): Promise<CreationPermit> {
-        const chainId = await adminWallet.getChainId();
+        const chainId = currentChainId;
         const signature = await adminWallet._signTypedData(
         {
             name: "FanTicketFactory",
