@@ -7,8 +7,10 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Account } from './Account';
+import { Transaction } from './Transaction';
 
 @Entity()
 export class Token {
@@ -73,6 +75,12 @@ export class Token {
     default: TransactionStatus.PENDING,
   })
   status: TransactionStatus;
+
+  @OneToMany(
+    () => Transaction,
+    t => t.token,
+  )
+  transactions: Transaction[];
 
   @CreateDateColumn()
   created_at: Date;

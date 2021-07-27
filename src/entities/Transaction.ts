@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Token } from './Token';
 
 export enum TransactionType {
   TRANSFER = 'transfer', // use `transferFromBySig()`
@@ -18,6 +19,13 @@ export enum TransactionType {
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(
+    () => Token,
+    t => t.transactions,
+    { eager: true, nullable: false },
+  )
+  token: Token;
 
   @Column({
     type: 'char',
