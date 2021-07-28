@@ -64,7 +64,7 @@ export class TokenService {
             target: string;
             callData: string;
             }> = tokensNeedToDeploy.map(t => {
-            const callData = this.factoryContract.interface.encodeFunctionData('newAPeggedToken', [
+            const callData = this.factoryContract.interface.encodeFunctionData('newFanTicket', [
                 t.name,
                 t.symbol,
                 t.owner.address,
