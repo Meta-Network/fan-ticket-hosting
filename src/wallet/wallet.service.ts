@@ -26,7 +26,6 @@ export class WalletService {
 
   async createWalletFor(id: number, encryptPasswd: string): Promise<void> {
     const matchedWallet = await this.walletAccountRepo.findOne(id);
-
     if (matchedWallet) {
       throw new ConflictException('You already have a wallet.');
     }
@@ -41,7 +40,12 @@ export class WalletService {
     });
   }
 
-  async useNonceOf(
+  /**
+   * 这里的 `nonce` 是钱包在区块链网络上的交易顺序，并非元交易的 Nonce。
+   * @param address 托管的钱包地址
+   * @returns 
+   */
+  async useEthNonceOf(
     address: string,
   ): Promise<{ currentNonce: number; nextNonce: number }> {
     const account = await this.walletAccountRepo.findOne({
