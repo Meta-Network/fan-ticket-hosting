@@ -14,7 +14,7 @@ import { GasLimitService } from '../gas-limit/gas-limit.service';
 
 @Injectable()
 export class TokenService {
-    #operatorWallet: Wallet;
+    #issueOperator: Wallet;
     logger: Logger;
     factoryContract: FanTicketFactory;
 
@@ -29,9 +29,9 @@ export class TokenService {
             currentProvider,
         );
         this.logger = new Logger('TokenCronService')
-        const privateKey = configService.get<string>('operatorWallet.privateKey');
-        this.#operatorWallet = new Wallet(privateKey, currentProvider)
-        this.logger.verbose(`Operator Wallet is ${this.#operatorWallet.address}`)
+        const privateKey = configService.get<string>('privateKeys.issueOperator');
+        this.#issueOperator = new Wallet(privateKey, currentProvider)
+        this.logger.verbose(`Operator Wallet is ${this.#issueOperator.address}`)
     }
 
     @Cron(CronExpression.EVERY_5_MINUTES)
@@ -76,7 +76,7 @@ export class TokenService {
             ]);
             return { target: this.factoryContract.address, callData }
         })
-        const multicall = Multicall__factory.connect(currentMulticall, this.#operatorWallet);
+        const multicall = Multicall__factory.connect(currentMulticall, this.#issueOperator);
         // try with call static to see is there anything wrong.
         const estimatedGas = await multicall.estimateGas.aggregate(calls);
         this.logger.verbose(`Estimated Gas for deploying ${calls.length} token(s): ${estimatedGas.toString()}`)
@@ -104,7 +104,7 @@ export class TokenService {
         
         const relatedTxHashes = sendingTokens.map(t => t.txHash);
         const shaked = [...new Set(relatedTxHashes)];
-        const receipts = await Promise.all(shaked.map(hash => this.#operatorWallet.provider.getTransactionReceipt(hash)))
+        const receipts = await Promise.all(shaked.map(hash => this.#issueOperator.provider.getTransactionReceipt(hash)))
         // txReceipt should not be null, and confirmations should >= 3
         const successTxs = receipts.filter(r => Boolean(r) && r.confirmations >= 3)
         const successTxHashes = successTxs.map(r => r.transactionHash)

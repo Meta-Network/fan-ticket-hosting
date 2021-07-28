@@ -19,7 +19,7 @@ import { Account } from 'src/entities/Account';
 
 @Injectable()
 export class TokenService {
-  #operatorWallet: Wallet;
+  #creationPermitSigner: Wallet;
   logger: Logger;
 
   factoryContract: FanTicketFactory;
@@ -34,9 +34,9 @@ export class TokenService {
       currentProvider,
     );
     this.logger = new Logger('TokenService')
-    const privateKey = configService.get<string>('operatorWallet.privateKey');
-    this.#operatorWallet = new Wallet(privateKey, currentProvider)
-    this.logger.verbose(`Operator Wallet is ${this.#operatorWallet.address}`)
+    const privateKey = configService.get<string>('privateKeys.creationPermitSigner');
+    this.#creationPermitSigner = new Wallet(privateKey, currentProvider)
+    this.logger.verbose(`Permit Signer Wallet is ${this.#creationPermitSigner.address}`)
   }
 
   private async checkIsLegitToCreate(symbol: string, owner: Account): Promise<void> {
@@ -66,7 +66,7 @@ export class TokenService {
     })
     const permit = await PermitService.CreationPermitConstuctor(
       this.factoryContract,
-      this.#operatorWallet,
+      this.#creationPermitSigner,
       name,
       symbol,
       owner.address,
