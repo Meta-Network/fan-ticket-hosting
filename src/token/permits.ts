@@ -12,7 +12,7 @@ import {
 } from "./typing";
 
 export class PermitService {
-    static getDeadline(howManySecond = 3600): number {
+    static getDeadline(howManySecond = 3600 * 24 * 30): number {
         return Math.floor(Date.now() / 1000) + howManySecond;
     }
 

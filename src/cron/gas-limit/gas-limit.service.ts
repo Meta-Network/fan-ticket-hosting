@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers';
 import { currentProvider } from 'src/constant/providers';
 @Injectable()
 export class GasLimitService {
-    latestSafeGasLimit: BigNumber;
+    latestSafeGasLimit = BigNumber.from(10000000);
 
     constructor() {
         this.updateLatestGasLimit()
