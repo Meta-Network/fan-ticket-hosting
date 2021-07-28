@@ -19,6 +19,12 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
+export enum TxType {
+  Transfer = 0,
+  Mint = 1,
+  Permit = 2
+}
+
 interface FanTicketClearingHouseInterface extends ethers.utils.Interface {
   functions: {
     "handleTransferOrders(tuple[])": FunctionFragment;
@@ -33,7 +39,7 @@ interface FanTicketClearingHouseInterface extends ethers.utils.Interface {
         to: string;
         value: BigNumberish;
         deadline: BigNumberish;
-        isMint: boolean;
+        _type: TxType;
         v: BigNumberish;
         r: BytesLike;
         s: BytesLike;
@@ -100,7 +106,7 @@ export class FanTicketClearingHouse extends BaseContract {
         to: string;
         value: BigNumberish;
         deadline: BigNumberish;
-        isMint: boolean;
+        _type: BigNumberish;
         v: BigNumberish;
         r: BytesLike;
         s: BytesLike;
@@ -116,7 +122,7 @@ export class FanTicketClearingHouse extends BaseContract {
       to: string;
       value: BigNumberish;
       deadline: BigNumberish;
-      isMint: boolean;
+      _type: TxType;
       v: BigNumberish;
       r: BytesLike;
       s: BytesLike;
@@ -132,7 +138,7 @@ export class FanTicketClearingHouse extends BaseContract {
         to: string;
         value: BigNumberish;
         deadline: BigNumberish;
-        isMint: boolean;
+        _type: TxType;
         v: BigNumberish;
         r: BytesLike;
         s: BytesLike;
@@ -151,7 +157,7 @@ export class FanTicketClearingHouse extends BaseContract {
         to: string;
         value: BigNumberish;
         deadline: BigNumberish;
-        isMint: boolean;
+        _type: TxType;
         v: BigNumberish;
         r: BytesLike;
         s: BytesLike;
@@ -168,7 +174,7 @@ export class FanTicketClearingHouse extends BaseContract {
         to: string;
         value: BigNumberish;
         deadline: BigNumberish;
-        isMint: boolean;
+        _type: TxType;
         v: BigNumberish;
         r: BytesLike;
         s: BytesLike;

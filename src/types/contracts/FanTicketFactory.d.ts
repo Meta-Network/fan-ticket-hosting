@@ -27,7 +27,7 @@ interface FanTicketFactoryInterface extends ethers.utils.Interface {
     "computeAddress(string,string)": FunctionFragment;
     "computeCreationCodeWithArgs(string,string)": FunctionFragment;
     "managerRegistry()": FunctionFragment;
-    "newAPeggedToken(string,string,address,uint256,uint32,uint8,bytes32,bytes32)": FunctionFragment;
+    "newFanTicket(string,string,address,uint256,uint32,uint8,bytes32,bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "salt()": FunctionFragment;
@@ -59,7 +59,7 @@ interface FanTicketFactoryInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "newAPeggedToken",
+    functionFragment: "newFanTicket",
     values: [
       string,
       string,
@@ -116,7 +116,7 @@ interface FanTicketFactoryInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "newAPeggedToken",
+    functionFragment: "newFanTicket",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -215,7 +215,7 @@ export class FanTicketFactory extends BaseContract {
 
     managerRegistry(overrides?: CallOverrides): Promise<[string]>;
 
-    newAPeggedToken(
+    newFanTicket(
       name: string,
       symbol: string,
       owner: string,
@@ -270,7 +270,7 @@ export class FanTicketFactory extends BaseContract {
 
   managerRegistry(overrides?: CallOverrides): Promise<string>;
 
-  newAPeggedToken(
+  newFanTicket(
     name: string,
     symbol: string,
     owner: string,
@@ -325,7 +325,7 @@ export class FanTicketFactory extends BaseContract {
 
     managerRegistry(overrides?: CallOverrides): Promise<string>;
 
-    newAPeggedToken(
+    newFanTicket(
       name: string,
       symbol: string,
       owner: string,
@@ -398,7 +398,7 @@ export class FanTicketFactory extends BaseContract {
 
     managerRegistry(overrides?: CallOverrides): Promise<BigNumber>;
 
-    newAPeggedToken(
+    newFanTicket(
       name: string,
       symbol: string,
       owner: string,
@@ -461,7 +461,7 @@ export class FanTicketFactory extends BaseContract {
 
     managerRegistry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    newAPeggedToken(
+    newFanTicket(
       name: string,
       symbol: string,
       owner: string,
