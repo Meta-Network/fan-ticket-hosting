@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BigNumber } from 'ethers';
 import { Wallet } from 'ethers';
@@ -86,6 +86,15 @@ export class TokenService {
     return userTxs.length;
   }
 
+  private async _unlockWallet(keystore: string, password: string): Promise<Wallet> {
+    try {
+      const wallet = await Wallet.fromEncryptedJson(keystore, password)     
+      return wallet 
+    } catch (error) {
+      throw new BadRequestException("Failed when unlocking wallet, please check your password.")
+    }
+  }
+
   async transfer(
     _token: Token,
     from: Account,
@@ -97,7 +106,7 @@ export class TokenService {
 
     // get nonce from DB
     const nonce = await this.getNonceOf(_token, from);
-    const fromWallet = await Wallet.fromEncryptedJson(from.keystore, password)
+    const fromWallet = await this._unlockWallet(from.keystore, password)
 
     const permit = await PermitService.TransferOrderConstuctor(
       tokenContract,
@@ -130,7 +139,7 @@ export class TokenService {
     // get nonce from DB
     const nonce = await this.getNonceOf(_token, minter);
 
-    const minterWallet = await Wallet.fromEncryptedJson(minter.keystore, password);
+    const minterWallet = await this._unlockWallet(minter.keystore, password);
     const permit = await PermitService.MintOrderConstuctor(
       token,
       minterWallet,
