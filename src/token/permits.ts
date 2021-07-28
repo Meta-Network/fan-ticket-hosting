@@ -1,5 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import { BigNumber, BigNumberish, utils, Wallet } from "ethers";
+import { TxType } from "src/types/contracts/FanTicketClearingHouse";
 import { currentChainId } from "../constant";
 import type { FanTicketFactory } from "../types/contracts/FanTicketFactory";
 import type { FanTicketV2 } from "../types/contracts/FanTicketV2";
@@ -8,6 +9,7 @@ import {
   TransferOrder,
   MintOrder,
   CreationPermit,
+  ApproveOrder,
 } from "./typing";
 
 
@@ -68,7 +70,7 @@ export class PermitService {
             from: from.address,
             to,
             value,
-            isMint: false,
+            _type: TxType.Transfer,
             deadline,
             v,
             r,
@@ -122,7 +124,7 @@ export class PermitService {
             from: from.address,
             to,
             value,
-            isMint: true,
+            _type: TxType.Mint,
             deadline,
             v,
             r,
@@ -130,13 +132,14 @@ export class PermitService {
         };
     }
 
-    static async signEIP2612Permit(
+    static async ApproveOrderConstructor(
         fanTicket: FanTicketV2,
         theOwner: Wallet,
         spender: string,
         targetAmount: BigNumber,
+        nonce: number,
         validPeriod = 3600
-    ) {
+    ): Promise<ApproveOrder> {
         this.addressChecker(spender);
         const chainId = currentChainId;
         const deadline = this.getDeadline(validPeriod);
@@ -144,11 +147,11 @@ export class PermitService {
         await fanTicket.mint(ownerAddress, targetAmount);
 
         const msg = {
-        owner: ownerAddress,
-        spender,
-        value: targetAmount,
-        nonce: (await fanTicket.nonces(spender)).toNumber(),
-        deadline,
+            owner: ownerAddress,
+            spender,
+            value: targetAmount,
+            nonce,
+            deadline,
         };
 
         const signature = await theOwner._signTypedData(
@@ -175,10 +178,11 @@ export class PermitService {
 
         const { r, s, v } = utils.splitSignature(signature);
         return {
-            owner: ownerAddress,
-            spender,
+            token: fanTicket.address,
+            from: ownerAddress,
+            to: spender,
             value: targetAmount.toString(),
-            nonce: msg.nonce,
+            _type: TxType.Permit,
             deadline,
             v,
             r,
