@@ -1,3 +1,4 @@
+import { BadRequestException } from "@nestjs/common";
 import { BigNumber, BigNumberish, utils, Wallet } from "ethers";
 import { currentChainId } from "../constant";
 import type { FanTicketFactory } from "../types/contracts/FanTicketFactory";
@@ -15,16 +16,10 @@ export class PermitService {
         return Math.floor(Date.now() / 1000) + howManySecond;
     }
 
-    static RandomOrderConstuctor(
-        token: FanTicketV2,
-        from: Wallet,
-        to: string,
-        value: BigNumberish,
-        nonce: number
-        ): Promise<TransactionOrder> {
-        const whichFn =
-        nonce % 2 === 0 ? this.TransferOrderConstuctor : this.MintOrderConstuctor;
-        return whichFn(token, from, to, value, nonce);
+    static addressChecker(enterAddress: string): void {
+        if (!utils.isAddress(enterAddress)) {
+            throw new BadRequestException('Bad address you provided, please double check your inputed address.')
+        }
     }
 
     static async TransferOrderConstuctor(
@@ -35,6 +30,7 @@ export class PermitService {
         nonce: number,
         validPeriod = 3600
     ): Promise<TransferOrder> {
+        this.addressChecker(to);
         const deadline = this.getDeadline(validPeriod);
         const chainId = currentChainId;
 
@@ -87,6 +83,7 @@ export class PermitService {
         value: BigNumberish,
         nonce: number
     ): Promise<MintOrder> {
+        this.addressChecker(to);
         const deadline = this.getDeadline();
         const chainId = currentChainId;
 
@@ -140,6 +137,7 @@ export class PermitService {
         targetAmount: BigNumber,
         validPeriod = 3600
     ) {
+        this.addressChecker(spender);
         const chainId = currentChainId;
         const deadline = this.getDeadline(validPeriod);
         const ownerAddress = await theOwner.getAddress();
@@ -188,7 +186,7 @@ export class PermitService {
         };
     }
 
-    static async  CreationPermitConstuctor(
+    static async CreationPermitConstuctor(
         factory: FanTicketFactory,
         adminWallet: Wallet,
         name: string,
