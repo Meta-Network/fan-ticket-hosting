@@ -1,5 +1,10 @@
 import { BigNumberish } from 'ethers';
-import { TxType } from 'src/types/contracts/FanTicketClearingHouse';
+
+export enum TxType {
+  Transfer = 0,
+  Mint = 1,
+  Permit = 2
+}
 
 export type TransferOrder = {
   token: string;

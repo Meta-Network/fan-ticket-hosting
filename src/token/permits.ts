@@ -1,17 +1,15 @@
 import { BadRequestException } from "@nestjs/common";
 import { BigNumber, BigNumberish, utils, Wallet } from "ethers";
-import { TxType } from "src/types/contracts/FanTicketClearingHouse";
 import { currentChainId } from "../constant";
 import type { FanTicketFactory } from "../types/contracts/FanTicketFactory";
 import type { FanTicketV2 } from "../types/contracts/FanTicketV2";
 import {
-  TransactionOrder,
   TransferOrder,
   MintOrder,
   CreationPermit,
   ApproveOrder,
+  TxType
 } from "./typing";
-
 
 export class PermitService {
     static getDeadline(howManySecond = 3600): number {
