@@ -3,19 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { BigNumber } from 'ethers';
 import { Wallet } from 'ethers';
 import { Token } from '../entities/Token';
-import { currentContracts, currentMulticall } from '../constant/contracts';
+import { currentContracts } from '../constant/contracts';
 import { currentProvider } from '../constant/providers';
-import { TransactionStatus } from '../types';
 import {
   FanTicketFactory,
   FanTicketFactory__factory,
   FanTicketV2__factory,
 } from '../types/contracts';
 import { PermitService } from './permits';
-import { Multicall__factory } from 'src/types/contracts/MulticallFactory';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/entities/Account';
+import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
 
 @Injectable()
 export class TokenService {
@@ -27,6 +26,8 @@ export class TokenService {
   constructor(
     @InjectRepository(Token)
     private readonly tokenRepo: Repository<Token>,
+    @InjectRepository(OutTransaction)
+    private readonly txRepo: Repository<OutTransaction>,
     private readonly configService: ConfigService
   ) {
     this.factoryContract = FanTicketFactory__factory.connect(
@@ -77,43 +78,76 @@ export class TokenService {
     await this.tokenRepo.save(token)
   }
 
+  async getNonceOf(token: Token, from: Account): Promise<number> {
+    const userTxs = await this.txRepo.find({
+      where: { token: { id: token.id }, from: { id: from.id } },
+    });
+    console.info(`relatedTxs for ${from.id} is ${userTxs.length}`)
+    return userTxs.length;
+  }
+
   async transfer(
-    tokenAddress: string,
-    from: Wallet,
+    _token: Token,
+    from: Account,
     to: string,
     value: BigNumber,
+    password: string
   ): Promise<void> {
-    const token = FanTicketV2__factory.connect(tokenAddress, currentProvider);
-    // @todo; get nonce from DB
+    const tokenContract = FanTicketV2__factory.connect(_token.address, currentProvider);
 
-    const nonce = 0;
+    // get nonce from DB
+    const nonce = await this.getNonceOf(_token, from);
+    const fromWallet = await Wallet.fromEncryptedJson(from.keystore, password)
+
     const permit = await PermitService.TransferOrderConstuctor(
-      token,
-      from,
+      tokenContract,
+      fromWallet,
       to,
       value,
       nonce,
     );
-    // @todo: write permit into DB for clearing
+    // write permit into DB for clearing
+    await this.txRepo.save({
+      token: _token,
+      from,
+      to,
+      type: TransactionType.TRANSFER,
+      // use hexstring for storage
+      value: value.toHexString(),
+      deadline: permit.deadline,
+      v: permit.v, r: permit.r, s: permit.s,
+    })
   }
 
   async mint(
-    tokenAddress: string,
-    minter: Wallet,
+    _token: Token,
+    minter: Account,
     to: string,
     value: BigNumber,
+    password: string
   ): Promise<void> {
-    const token = FanTicketV2__factory.connect(tokenAddress, currentProvider);
-    // @todo; get nonce from DB
+    const token = FanTicketV2__factory.connect(_token.address, currentProvider);
+    // get nonce from DB
+    const nonce = await this.getNonceOf(_token, minter);
 
-    const nonce = 0;
+    const minterWallet = await Wallet.fromEncryptedJson(minter.keystore, password);
     const permit = await PermitService.MintOrderConstuctor(
       token,
-      minter,
+      minterWallet,
       to,
       value,
       nonce,
     );
-    // @todo: write permit into DB for clearing
+    // write permit into DB for clearing
+    await this.txRepo.save({
+      token: _token,
+      from: minter,
+      to,
+      type: TransactionType.MINT,
+      // use hexstring for storage
+      value: value.toHexString(),
+      deadline: permit.deadline,
+      v: permit.v, r: permit.r, s: permit.s,
+    })
   }
 }
