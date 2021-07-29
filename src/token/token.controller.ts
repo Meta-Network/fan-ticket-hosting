@@ -69,7 +69,6 @@ export class TokenController {
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
-    console.info('token', token)
     // @todo: check request user is owner or not in prod
     const from = token.owner;
 
