@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ClearingHouseModule } from 'src/clearing-house/clearing-house.module';
 import { Account } from 'src/entities/Account';
 import { OutTransaction } from 'src/entities/OutTransaction';
 import { Token } from 'src/entities/Token';
@@ -9,9 +10,10 @@ import { ClearingService } from './clearing.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Token, Account, OutTransaction]),
-    GasLimitModule
+    GasLimitModule,
+    ClearingHouseModule,
   ],
   providers: [ClearingService],
-  exports: [ClearingService]
+  exports: [ClearingService],
 })
 export class ClearingMoudle {}

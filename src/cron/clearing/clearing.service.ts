@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'ethers';
+import { ClearingHouseService } from 'src/clearing-house/clearing-house.service';
 import { currentContracts } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
@@ -24,6 +25,7 @@ export class ClearingService {
         private readonly txRepo: Repository<OutTransaction>,
         private readonly configService: ConfigService,
         private readonly gasService: GasLimitService,        
+        private readonly chService: ClearingHouseService,        
     ) {
 
         this.logger = new Logger('TokenCronService')
@@ -60,24 +62,7 @@ export class ClearingService {
         this.logger.verbose(`Clearing Txs: ${pendingTxs.map(t => t.id).join(', ')}`);
 
 
-        const orders: Array<TransferOrder | MintOrder | ApproveOrder> = pendingTxs.map((tx) => {
-            const typeMapping: Record<TransactionType, TxType> = {
-                [TransactionType.MINT]: TxType.Mint,
-                [TransactionType.APPROVE]: TxType.Permit,
-                [TransactionType.TRANSFER]: TxType.Transfer,
-            }
-            return { 
-                token: tx.token.address,
-                from: tx.from.address,
-                to: tx.to,
-                value: tx.value,
-                _type: typeMapping[tx.type],
-                deadline: tx.deadline,
-                v: tx.v,
-                r: tx.r,
-                s: tx.s,
-            }
-        });
+        const orders = this.chService.transactionParser(pendingTxs)
         const tx = await this.clearingHouse.handleTransferOrders(orders);
 
         await this.txRepo.update(pendingTxs.map(t => t.id), {
