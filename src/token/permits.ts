@@ -142,7 +142,6 @@ export class PermitService {
         const chainId = currentChainId;
         const deadline = this.getDeadline(validPeriod);
         const ownerAddress = await theOwner.getAddress();
-        await fanTicket.mint(ownerAddress, targetAmount);
 
         const msg = {
             owner: ownerAddress,

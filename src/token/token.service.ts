@@ -95,6 +95,15 @@ export class TokenService {
     }
   }
 
+  /**
+   * Effectively Equal to  `transfer()` , but we customed based on EIP-712's `TypedSignature`
+   * named `transferFromBySig()`，in order to batch them for clearing
+   * @param _token Token Object
+   * @param from same as transferFrom(from)
+   * @param to same as transferFrom(from, to)
+   * @param value same as transferFrom(from, to, value)
+   * @param password The password to unlock the wallet
+   */
   async transfer(
     _token: Token,
     from: Account,
@@ -128,6 +137,15 @@ export class TokenService {
     })
   }
 
+  /**
+   * Effectively Equal to `IERC20.mint()`, but we customed based on EIP-712's `TypedSignature`
+   * to build `mintBySig()`, in order to batch them for clearing
+   * @param _token Token Object
+   * @param from the account who operate `mint`, have to be the minter of this token
+   * @param to mint target
+   * @param value The amount to mint
+   * @param password The password to unlock the wallet
+   */
   async mint(
     _token: Token,
     minter: Account,
@@ -135,6 +153,7 @@ export class TokenService {
     value: BigNumber,
     password: string
   ): Promise<void> {
+    // @todo check minter role
     const token = FanTicketV2__factory.connect(_token.address, currentProvider);
     // get nonce from DB
     const nonce = await this.getNonceOf(_token, minter);
@@ -153,6 +172,49 @@ export class TokenService {
       from: minter,
       to,
       type: TransactionType.MINT,
+      // use hexstring for storage
+      value: value.toHexString(),
+      deadline: permit.deadline,
+      v: permit.v, r: permit.r, s: permit.s,
+    })
+  }
+
+  /**
+   * Effectively Equal to `IERC20.approve()`, but using EIP-2612's `permit`，in order to batch them for clearing
+   * This is a reserved port only for other contract that support 2612 (e.g Uniswap)
+   * normally we use `transfer`.
+   * @param _token Token Object
+   * @param from same as approve(from)
+   * @param spender same as approve(from, spender)
+   * @param value same as approve(from, spender, value)
+   * @param password The password to unlock the wallet
+   */
+  async approve(
+    _token: Token,
+    from: Account,
+    spender: string,
+    value: BigNumber,
+    password: string
+  ): Promise<void> {
+    const tokenContract = FanTicketV2__factory.connect(_token.address, currentProvider);
+
+    // get nonce from DB
+    const nonce = await this.getNonceOf(_token, from);
+    const fromWallet = await this._unlockWallet(from.keystore, password)
+
+    const permit = await PermitService.ApproveOrderConstructor(
+      tokenContract,
+      fromWallet,
+      spender,
+      value,
+      nonce,
+    );
+    // write permit into DB for clearing
+    await this.txRepo.save({
+      token: _token,
+      from,
+      to: spender,
+      type: TransactionType.APPROVE,
       // use hexstring for storage
       value: value.toHexString(),
       deadline: permit.deadline,
