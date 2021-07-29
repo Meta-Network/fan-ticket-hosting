@@ -44,7 +44,6 @@ export class ClearingService {
             this.logger.verbose('Lock is enabled, wait for unlock')
             return;
         }
-        this.lock = true;
 
         const safeMaxTxQty = Number(this.gasService.latestSafeGasLimit.div("600000").toBigInt())
 
@@ -54,6 +53,9 @@ export class ClearingService {
             relations: ['token', 'from']
         });
         if (pendingTxs.length === 0) return; // skip
+        
+        // handling txs
+        this.lock = true;
 
         this.logger.verbose(`Clearing Txs: ${pendingTxs.map(t => t.id).join(', ')}`);
 
