@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -67,16 +67,18 @@ export class ClearingHouseService {
     async estimateTransactionStatus(transaction: OutTransaction): Promise<void> {
         const relatedPendingTxs = await this.txRepo.find({
             where: {
-            // only this token
-            token: { id: transaction.token.id },
-            status: TransactionStatus.PENDING
-          },
+                // only this token
+                token: { id: transaction.token.id },
+                status: TransactionStatus.PENDING,
+            },
+            relations: ['token', 'from']
         })
-    
-        const orders = this.transactionParser([...relatedPendingTxs, transaction])
+        const estTxs = [...relatedPendingTxs, transaction]
+        console.info('estTxs', estTxs)
+        const orders = this.transactionParser(estTxs)
         return new Promise<void>((resolve, reject) => {
             this.clearingHouse.callStatic.handleTransferOrders(orders).then(() => resolve()).catch((err) => {
-                reject(err)
+                reject(new BadRequestException(err.reason))
             })
         })
     }
