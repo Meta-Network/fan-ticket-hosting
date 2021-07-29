@@ -16,6 +16,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/entities/Account';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
 import { BigNumberish } from 'ethers';
+import { OnlyPublishedToken } from 'src/decorators/token.decorator';
 
 @Injectable()
 export class TokenService {
@@ -113,6 +114,7 @@ export class TokenService {
    * @param value same as transferFrom(from, to, value)
    * @param password The password to unlock the wallet
    */
+  @OnlyPublishedToken
   async transfer(
     _token: Token,
     from: Account,
@@ -155,6 +157,7 @@ export class TokenService {
    * @param value The amount to mint
    * @param password The password to unlock the wallet
    */
+  @OnlyPublishedToken
   async mint(
     _token: Token,
     minter: Account,
@@ -198,6 +201,7 @@ export class TokenService {
    * @param value same as approve(from, spender, value)
    * @param password The password to unlock the wallet
    */
+  @OnlyPublishedToken
   async approve(
     _token: Token,
     from: Account,
