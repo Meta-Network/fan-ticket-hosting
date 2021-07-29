@@ -12,6 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { Token } from './entities/Token';
 import { OutTransaction } from './entities/OutTransaction';
 import { CronModule } from './cron/cron.module';
+import { ClearingHouseModule } from './clearing-house/clearing-house.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CronModule } from './cron/cron.module';
     WalletModule,
     TokenModule,
     CronModule,
+    ClearingHouseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
