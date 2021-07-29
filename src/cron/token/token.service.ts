@@ -17,6 +17,7 @@ export class TokenService {
     #issueOperator: Wallet;
     logger: Logger;
     factoryContract: FanTicketFactory;
+    lock = false;
 
     constructor(
         @InjectRepository(Token)
@@ -36,13 +37,18 @@ export class TokenService {
 
     @Cron(CronExpression.EVERY_5_MINUTES)
     async handleTokenIssueRequest(): Promise<void> {
+        // a software lock, avoid race condition
+        if (this.lock) {
+            this.logger.verbose('Lock is enabled, wait for unlock')
+        }
         let tokensNeedToDeploy = await this.tokenRepo.find({
             where: { status: TransactionStatus.PENDING },
             relations: [ 'owner' ]
         })
 
-        if (tokensNeedToDeploy.length === 0)
-            return // skip then
+        if (tokensNeedToDeploy.length === 0) return // skip then
+        // handling txs
+        this.lock = true;
         
         const approximateMaxTokenQtyInTx = this.gasService.latestSafeGasLimit.div("2000000").toBigInt()
         this.logger.verbose(`Estimated Max Qty for token creation: ${approximateMaxTokenQtyInTx}`)
@@ -91,6 +97,8 @@ export class TokenService {
         await this.tokenRepo.update({ id: In(deployed.map(t => t.id)) }, {
             txHash: hash, status: TransactionStatus.SENDING
         });
+
+        this.lock = false;
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
