@@ -73,7 +73,7 @@ export class ClearingHouseService {
           },
         })
     
-        const orders = this.transactionParser(relatedPendingTxs)
+        const orders = this.transactionParser([...relatedPendingTxs, transaction])
         return new Promise<void>((resolve, reject) => {
             this.clearingHouse.callStatic.handleTransferOrders(orders).then(() => resolve()).catch((err) => {
                 reject(err)
