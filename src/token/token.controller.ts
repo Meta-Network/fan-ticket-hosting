@@ -39,11 +39,12 @@ export class TokenController {
     @Body() transferDto: TransferDto,
   ): Promise<any> {
     const token = await this.tokenRepo.findOne(tokenId);
-    // @todo: remove this when go to prod
-    const from = await this.accRepo.findOne(transferDto.from);
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
+    // @todo: remove this when go to prod
+    const from = await this.accRepo.findOne(transferDto.from);
+
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(transferDto.value)
     
@@ -65,11 +66,13 @@ export class TokenController {
     @Body() body: MintDto,
   ): Promise<any> {
     const token = await this.tokenRepo.findOne(tokenId, { relations: ['owner'] });
-    // @todo: check request user is owner or not in prod
-    const from = token.owner;
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
+    console.info('token', token)
+    // @todo: check request user is owner or not in prod
+    const from = token.owner;
+
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(body.value)
     // @todo: try to estimateGas, not inserting if failed
@@ -89,11 +92,11 @@ export class TokenController {
     @Body() body: MintDto,
   ): Promise<any> {
     const token = await this.tokenRepo.findOne(tokenId, { relations: ['owner'] });
-    // @todo: check request user is owner or not in prod
-    const from = token.owner;
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
+    // @todo: check request user is owner or not in prod
+    const from = token.owner;
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(body.value)
 
