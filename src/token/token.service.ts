@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/entities/Account';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
+import { BigNumberish } from 'ethers';
 
 @Injectable()
 export class TokenService {
@@ -92,6 +93,14 @@ export class TokenService {
       return wallet 
     } catch (error) {
       throw new BadRequestException("Failed when unlocking wallet, please check your password.")
+    }
+  }
+
+  parseBigNumber(bnish: BigNumberish): BigNumber {
+    try {
+      return BigNumber.from(bnish);
+    } catch (error) {
+      throw new BadRequestException("Failed to parse the number, please try again");
     }
   }
 

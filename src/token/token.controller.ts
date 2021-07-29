@@ -23,7 +23,7 @@ export class TokenController {
     @Body() createTokenDto: CreateTokenDto,
   ): Promise<any> {
     const owner = await this.accRepo.findOne(ownerId);
-    const initialSupply = BigNumber.from(createTokenDto.initialSupply);
+    const initialSupply = this.service.parseBigNumber(createTokenDto.initialSupply);
     await this.service.create(
       createTokenDto.name,
       createTokenDto.symbol,
@@ -45,7 +45,7 @@ export class TokenController {
       throw new NotFoundException("No Such Token exist.")
     }
     // error will be throwed if transferDto.value is wrong.
-    const transferValue = BigNumber.from(transferDto.value);
+    const transferValue = this.service.parseBigNumber(transferDto.value)
     
     // @todo: try to estimateGas, not inserting if failed
 
@@ -71,9 +71,33 @@ export class TokenController {
       throw new NotFoundException("No Such Token exist.")
     }
     // error will be throwed if transferDto.value is wrong.
-    const transferValue = BigNumber.from(body.value)
+    const transferValue = this.service.parseBigNumber(body.value)
     // @todo: try to estimateGas, not inserting if failed
     await this.service.mint(
+      token,
+      from,
+      body.to,
+      transferValue,
+      body.password
+    );
+    return { msg: 'ok' };
+  }
+
+  @Post(':tokenId/approve')
+  async approveToken(
+    @Param('tokenId', ParseIntPipe) tokenId: number,
+    @Body() body: MintDto,
+  ): Promise<any> {
+    const token = await this.tokenRepo.findOne(tokenId, { relations: ['owner'] });
+    // @todo: check request user is owner or not in prod
+    const from = token.owner;
+    if (!token) {
+      throw new NotFoundException("No Such Token exist.")
+    }
+    // error will be throwed if transferDto.value is wrong.
+    const transferValue = this.service.parseBigNumber(body.value)
+
+    await this.service.approve(
       token,
       from,
       body.to,
