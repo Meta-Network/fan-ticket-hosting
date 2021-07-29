@@ -17,6 +17,7 @@ import { Account } from 'src/entities/Account';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
 import { BigNumberish } from 'ethers';
 import { OnlyPublishedToken } from 'src/decorators/token.decorator';
+import { ClearingHouseService } from 'src/clearing-house/clearing-house.service';
 
 @Injectable()
 export class TokenService {
@@ -30,7 +31,8 @@ export class TokenService {
     private readonly tokenRepo: Repository<Token>,
     @InjectRepository(OutTransaction)
     private readonly txRepo: Repository<OutTransaction>,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly chService: ClearingHouseService
   ) {
     this.factoryContract = FanTicketFactory__factory.connect(
       currentContracts.Factory,
@@ -135,8 +137,7 @@ export class TokenService {
       value,
       nonce,
     );
-    // write permit into DB for clearing
-    await this.txRepo.save({
+    const tx = {
       token: _token,
       from,
       to,
@@ -145,7 +146,11 @@ export class TokenService {
       value: value.toHexString(),
       deadline: permit.deadline,
       v: permit.v, r: permit.r, s: permit.s,
-    })
+    };
+    // throw Error if estimate was reverted
+    await this.chService.estimateTransactionStatus(tx as OutTransaction);
+    // write permit into DB for clearing
+    await this.txRepo.save(tx)
   }
 
   /**
@@ -178,8 +183,7 @@ export class TokenService {
       value,
       nonce,
     );
-    // write permit into DB for clearing
-    await this.txRepo.save({
+    const tx = {
       token: _token,
       from: minter,
       to,
@@ -188,7 +192,11 @@ export class TokenService {
       value: value.toHexString(),
       deadline: permit.deadline,
       v: permit.v, r: permit.r, s: permit.s,
-    })
+    }
+    // throw Error if estimate was reverted
+    await this.chService.estimateTransactionStatus(tx as OutTransaction);
+    // write permit into DB for clearing
+    await this.txRepo.save(tx)
   }
 
   /**
@@ -222,8 +230,7 @@ export class TokenService {
       value,
       nonce,
     );
-    // write permit into DB for clearing
-    await this.txRepo.save({
+    const tx = {
       token: _token,
       from,
       to: spender,
@@ -232,6 +239,11 @@ export class TokenService {
       value: value.toHexString(),
       deadline: permit.deadline,
       v: permit.v, r: permit.r, s: permit.s,
-    })
+    };
+    // approve does not need approve
+    // since clearing house is not `transferFrom`
+    // do `transferFrom` with `transferFromBySig`
+    // write permit into DB for clearing
+    await this.txRepo.save(tx)
   }
 }
