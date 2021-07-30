@@ -47,13 +47,12 @@ export class TokenController {
 
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(transferDto.value)
-    
-    // @todo: try to estimateGas, not inserting if failed
+    const checksumedToAddress = this.service.getChecksumedAddress(transferDto.to);
 
     await this.service.transfer(
       token,
       from,
-      transferDto.to,
+      checksumedToAddress,
       transferValue,
       transferDto.password
     );
@@ -74,11 +73,11 @@ export class TokenController {
 
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(body.value)
-    // @todo: try to estimateGas, not inserting if failed
+    const checksumedToAddress = this.service.getChecksumedAddress(body.to);
     await this.service.mint(
       token,
       from,
-      body.to,
+      checksumedToAddress,
       transferValue,
       body.password
     );
@@ -98,11 +97,11 @@ export class TokenController {
     const from = token.owner;
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(body.value)
-
+    const checksumedToAddress = this.service.getChecksumedAddress(body.to);
     await this.service.approve(
       token,
       from,
-      body.to,
+      checksumedToAddress,
       transferValue,
       body.password
     );

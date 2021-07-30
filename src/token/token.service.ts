@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BigNumber } from 'ethers';
+import { BigNumber, utils } from 'ethers';
 import { Wallet } from 'ethers';
 import { Token } from '../entities/Token';
 import { currentContracts } from '../constant/contracts';
@@ -52,6 +52,14 @@ export class TokenService {
     const matched = await this.tokenRepo.findOne({ symbol });
     if (matched) {
       throw new ConflictException("Sorry, but this symbol was taken by others.")
+    }
+  }
+
+  getChecksumedAddress(address: string): string {
+    try {
+      return utils.getAddress(address);
+    } catch (error) {
+      throw new Error("Your input was invalid, please check your target address.")
     }
   }
 
