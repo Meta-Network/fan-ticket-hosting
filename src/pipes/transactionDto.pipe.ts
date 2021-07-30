@@ -25,12 +25,12 @@ export class CheckTransactionPipe
     try {
       return BigNumber.from(bnish);
     } catch (error) {
-      throw new BadRequestException("Failed to parse the `value`, please try again");
+        throw new BadRequestException(`Failed to parse your input '${bnish}' as BigNumber`);
     }
   }
 
 
-  transform(body: TransactionDto, metadata: ArgumentMetadata): TransactionDto {
+  transform(body: TransactionDto): TransactionDto {
     const copiedBody = body;
     copiedBody.to = this.getChecksumedAddress(copiedBody.to);
     copiedBody.value = this.parseBigNumber(copiedBody.value)
