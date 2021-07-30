@@ -1,12 +1,19 @@
-import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
 import { Account } from 'src/entities/Account';
 import { Token } from 'src/entities/Token';
 import { Repository } from 'typeorm';
 import { CreateTokenDto } from './dto/CreateTokenDto';
-import { MintDto, TransferDto } from './dto/TokenTransactionDto';
+import { MintDto, TransactionDto, TransferDto } from './dto/TokenTransactionDto';
 import { TokenService } from './token.service';
+
+enum TransactionType {
+  Transfer = 'transfer',
+  Approve = 'approve',
+  Mint = 'mint'
+}
 
 @Controller('token')
 export class TokenController {
@@ -33,78 +40,35 @@ export class TokenController {
     return { msg: 'ok' };
   }
 
-  @Post(':tokenId/transfer')
-  async transferToken(
+  @ApiQuery({ name: 'type', enum: TransactionType })
+  @ApiQuery({ name: 'tmpUserId', type: 'number' })
+  @Post(':tokenId/transaction/')
+  async newTransaction(
+    @Query('type') type: TransactionType,
+    // @todo: remove `tmpUserId` when go to prod
+    @Query('tmpUserId', ParseIntPipe) tmpUserId: number,
     @Param('tokenId', ParseIntPipe) tokenId: number,
-    @Body() transferDto: TransferDto,
+    @Body() transferDto: TransactionDto,
   ): Promise<any> {
     const token = await this.tokenRepo.findOne(tokenId);
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
     // @todo: remove this when go to prod
-    const from = await this.accRepo.findOne(transferDto.from);
+    const from = await this.accRepo.findOne(tmpUserId);
 
     // error will be throwed if transferDto.value is wrong.
     const transferValue = this.service.parseBigNumber(transferDto.value)
     const checksumedToAddress = this.service.getChecksumedAddress(transferDto.to);
 
-    await this.service.transfer(
+    await this.service[type](
       token,
       from,
       checksumedToAddress,
       transferValue,
       transferDto.password
-    );
-    return { msg: 'ok' };
-  }
-
-  @Post(':tokenId/mint')
-  async mintToken(
-    @Param('tokenId', ParseIntPipe) tokenId: number,
-    @Body() body: MintDto,
-  ): Promise<any> {
-    const token = await this.tokenRepo.findOne(tokenId, { relations: ['owner'] });
-    if (!token) {
-      throw new NotFoundException("No Such Token exist.")
-    }
-    // @todo: check request user is owner or not in prod
-    const from = token.owner;
-
-    // error will be throwed if transferDto.value is wrong.
-    const transferValue = this.service.parseBigNumber(body.value)
-    const checksumedToAddress = this.service.getChecksumedAddress(body.to);
-    await this.service.mint(
-      token,
-      from,
-      checksumedToAddress,
-      transferValue,
-      body.password
-    );
-    return { msg: 'ok' };
-  }
-
-  @Post(':tokenId/approve')
-  async approveToken(
-    @Param('tokenId', ParseIntPipe) tokenId: number,
-    @Body() body: MintDto,
-  ): Promise<any> {
-    const token = await this.tokenRepo.findOne(tokenId, { relations: ['owner'] });
-    if (!token) {
-      throw new NotFoundException("No Such Token exist.")
-    }
-    // @todo: check request user is owner or not in prod
-    const from = token.owner;
-    // error will be throwed if transferDto.value is wrong.
-    const transferValue = this.service.parseBigNumber(body.value)
-    const checksumedToAddress = this.service.getChecksumedAddress(body.to);
-    await this.service.approve(
-      token,
-      from,
-      checksumedToAddress,
-      transferValue,
-      body.password
-    );
+    )
+    
     return { msg: 'ok' };
   }
 
