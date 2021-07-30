@@ -1,8 +1,10 @@
 import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
+import { BigNumber } from 'ethers';
 import { Account } from 'src/entities/Account';
 import { Token } from 'src/entities/Token';
+import { CheckTransactionPipe } from 'src/pipes/transactionDto.pipe';
 import { Repository } from 'typeorm';
 import { CreateTokenDto } from './dto/CreateTokenDto';
 import { TransactionDto } from './dto/TokenTransactionDto';
@@ -29,12 +31,12 @@ export class TokenController {
     @Body() createTokenDto: CreateTokenDto,
   ): Promise<any> {
     const owner = await this.accRepo.findOne(ownerId);
-    const initialSupply = this.service.parseBigNumber(createTokenDto.initialSupply);
+    // const initialSupply = this.service.parseBigNumber(createTokenDto.initialSupply);
     await this.service.create(
       createTokenDto.name,
       createTokenDto.symbol,
       owner,
-      initialSupply,
+      BigNumber.from(createTokenDto.initialSupply),
     );
     return { msg: 'ok' };
   }
@@ -47,7 +49,7 @@ export class TokenController {
     // @todo: remove `tmpUserId` when go to prod
     @Query('tmpUserId', ParseIntPipe) tmpUserId: number,
     @Param('tokenId', ParseIntPipe) tokenId: number,
-    @Body() transferDto: TransactionDto,
+    @Body(CheckTransactionPipe) transferDto: TransactionDto,
   ): Promise<any> {
     const token = await this.tokenRepo.findOne(tokenId);
     if (!token) {
@@ -56,15 +58,11 @@ export class TokenController {
     // @todo: remove this when go to prod
     const from = await this.accRepo.findOne(tmpUserId);
 
-    // error will be throwed if transferDto.value is wrong.
-    const transferValue = this.service.parseBigNumber(transferDto.value)
-    const checksumedToAddress = this.service.getChecksumedAddress(transferDto.to);
-
     await this.service[type](
       token,
       from,
-      checksumedToAddress,
-      transferValue,
+      transferDto.to,
+      transferDto.value as BigNumber,
       transferDto.password
     )
     

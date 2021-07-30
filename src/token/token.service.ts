@@ -55,13 +55,6 @@ export class TokenService {
     }
   }
 
-  getChecksumedAddress(address: string): string {
-    try {
-      return utils.getAddress(address);
-    } catch (error) {
-      throw new Error("Your input was invalid, please check your target address.")
-    }
-  }
 
   async create(
     name: string,
@@ -104,14 +97,6 @@ export class TokenService {
       return wallet 
     } catch (error) {
       throw new BadRequestException("Failed when unlocking wallet, please check your password.")
-    }
-  }
-
-  parseBigNumber(bnish: BigNumberish): BigNumber {
-    try {
-      return BigNumber.from(bnish);
-    } catch (error) {
-      throw new BadRequestException("Failed to parse the number, please try again");
     }
   }
 

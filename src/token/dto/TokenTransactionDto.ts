@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { BigNumberish } from 'ethers';
 
 export class TransactionDto {
   @ApiProperty({
@@ -8,8 +9,9 @@ export class TransactionDto {
 
   @ApiProperty({
     description: 'The amount to transfer',
+    type: 'string'
   })
-  value: string;
+  value: BigNumberish;
 
   @ApiProperty({
     description: 'Password that unlocks the from wallet',
