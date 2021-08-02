@@ -1,16 +1,22 @@
-import { Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentUserId } from 'src/decorators/user.decorator';
+import { CreateWalletDto } from './dto/CreateWallet.dto';
 import { WalletService } from './wallet.service';
 
 @Controller('wallet')
 export class WalletController {
   constructor(private service: WalletService) {}
 
-  @Post(':id/:password')
+  @UseGuards(JwtAuthGuard)
+  @Post()
   async createWallet(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('password') password: string,
-  ) {
-    const wallet = await this.service.createWalletFor(id, password);
+    @CurrentUserId() userId: number,
+    @Body() body: CreateWalletDto
+  ): Promise<any> {
+    if (!body) throw new BadRequestException("Body not exist")
+    if (!body.password) throw new BadRequestException("Password should not empty")
+    await this.service.createWalletFor(userId, body.password);
     return { message: 'ok' };
   }
 }
