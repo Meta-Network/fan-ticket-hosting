@@ -13,6 +13,7 @@ import { Token } from './entities/Token';
 import { OutTransaction } from './entities/OutTransaction';
 import { CronModule } from './cron/cron.module';
 import { ClearingHouseModule } from './clearing-house/clearing-house.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ClearingHouseModule } from './clearing-house/clearing-house.module';
       isGlobal: true,
       load: [configuration],
     }),
+    AuthModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

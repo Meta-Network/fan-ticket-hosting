@@ -1,23 +1,22 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { AuthController } from './auth.controller';
-import { UserModule } from 'src/user/user.module';
-import { SignatureModule } from 'src/signature/signature.module';
+import { PUBLIC_KEYS } from '@meta-network/auth-sdk';
+import { JWTSetting } from 'src/constant';
 require('dotenv').config();
 
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '30d' },
+      publicKey: PUBLIC_KEYS.DEVELOPMENT,
+      verifyOptions: {
+        issuer: JWTSetting.issuer,
+        audience: JWTSetting.audience,
+        ignoreExpiration: process.env.NODE_ENV !== 'production',
+      }
     }),
-    SignatureModule,
-    UserModule,
   ],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
-  controllers: [AuthController],
+  providers: [JwtStrategy],
+  exports: [JwtModule],
 })
 export class AuthModule {}

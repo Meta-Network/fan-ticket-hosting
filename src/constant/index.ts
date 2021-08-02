@@ -14,3 +14,8 @@ export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export const currentChainId = (configuration().app.chainId || 97) as ChainId;
 console.info(`Running On ChainId: ${currentChainId}`);
+
+export const JWTSetting = {
+  issuer: '',
+  audience: 'FanTicketHosting'
+}

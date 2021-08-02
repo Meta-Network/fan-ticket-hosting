@@ -1,25 +1,23 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { JwtDecodedUser } from 'src/types';
-import { UserService } from 'src/user/user.service';
+import { PUBLIC_KEYS } from '@meta-network/auth-sdk';
 require('dotenv').config();
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly userService: UserService) {
+  constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
+      jwtFromRequest: (req) => req.cookies['ucenter_accessToken'],
+      secretOrKey: PUBLIC_KEYS.DEVELOPMENT,
+      ignoreExpiration: process.env.NODE_ENV !== 'production',
+      algorithms: ['RS256', 'RS384'],
     });
   }
 
   async validate(payload: {
     sub: number;
-    username: string;
-  }): Promise<JwtDecodedUser> {
-    const who = await this.userService.findOne({ id: payload.sub });
-    return who;
+  }): Promise<number> {
+    return payload.sub;
   }
 }
