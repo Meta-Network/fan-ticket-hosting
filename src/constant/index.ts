@@ -16,6 +16,6 @@ export const currentChainId = (configuration().app.chainId || 97) as ChainId;
 console.info(`Running On ChainId: ${currentChainId}`);
 
 export const JWTSetting = {
-  issuer: '',
+  issuer: 'https://ucenter-test-api.mttk.net',
   audience: 'FanTicketHosting'
 }
