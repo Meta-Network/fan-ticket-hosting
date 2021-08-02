@@ -1,7 +1,9 @@
-import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentUserId } from 'src/decorators/user.decorator';
 import { Account } from 'src/entities/Account';
 import { Token } from 'src/entities/Token';
 import { CheckTransactionPipe } from 'src/pipes/transactionDto.pipe';
@@ -25,9 +27,12 @@ export class TokenController {
     private readonly tokenRepo: Repository<Token>,
     private readonly service: TokenService,
   ) {}
-  @Post(':ownerId')
+
+
+  @UseGuards(JwtAuthGuard)
+  @Post('')
   async createToken(
-    @Param('ownerId', ParseIntPipe) ownerId: number,
+    @CurrentUserId() ownerId: number,
     @Body() createTokenDto: CreateTokenDto,
   ): Promise<any> {
     const owner = await this.accRepo.findOne(ownerId);
@@ -42,12 +47,10 @@ export class TokenController {
   }
 
   @ApiQuery({ name: 'type', enum: TransactionType })
-  @ApiQuery({ name: 'tmpUserId', type: 'number' })
   @Post(':tokenId/transaction/')
   async newTransaction(
     @Query('type') type: TransactionType,
-    // @todo: remove `tmpUserId` when go to prod
-    @Query('tmpUserId', ParseIntPipe) tmpUserId: number,
+    @CurrentUserId() ownerId: number,
     @Param('tokenId', ParseIntPipe) tokenId: number,
     @Body(CheckTransactionPipe) transferDto: TransactionDto,
   ): Promise<any> {
@@ -55,8 +58,7 @@ export class TokenController {
     if (!token) {
       throw new NotFoundException("No Such Token exist.")
     }
-    // @todo: remove this when go to prod
-    const from = await this.accRepo.findOne(tmpUserId);
+    const from = await this.accRepo.findOne(ownerId);
 
     await this.service[type](
       token,
