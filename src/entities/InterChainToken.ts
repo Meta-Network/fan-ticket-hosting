@@ -5,45 +5,34 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
-import { Account } from './Account';
-import { OutTransaction } from './OutTransaction';
-import { InterChainToken } from './InterChainToken';
+import { Token } from "./Token";
+import { InterChainTransaction } from './InterChainTransaction';
 
 @Entity()
-export class Token {
+export class InterChainToken {
   @PrimaryGeneratedColumn()
   id: number;
 
-  /**
-   * Token Profile
-   */
-  @Column()
-  name: string;
+  // the original token
+  @ManyToOne(() => Token, t => t.interchainTokens)
+  origin: Token;
 
   @Column()
-  symbol: string;
+  originId: number;
 
+  // @todo: origin + chainId should be unique
   @Column()
-  totalSupply: string;
-
-  @OneToOne(
-    () => Account,
-    acc => acc.issuedToken,
-  )
-  @JoinColumn()
-  owner: Account;
+  chainId: number;
 
   @Column({ type: 'char', length: 42 })
   address: string;
 
   /**
    * Signature Related
-   * Trying them to batch all those
-   * creation in Multicall contract
+   * Let the user interact with these sig
    */
   @Column()
   v: number;
@@ -62,7 +51,7 @@ export class Token {
   s: string;
 
   /**
-   * Marking the transaction's on-chain status
+   * Marking the creation's on-chain status
    */
   @Column({
     type: 'varchar',
@@ -79,18 +68,14 @@ export class Token {
   status: TransactionStatus;
 
   @OneToMany(
-    () => OutTransaction,
+    () => InterChainTransaction,
     t => t.token,
   )
-  transactions: OutTransaction[];
+  transactions: InterChainTransaction[];
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  // InterChain tokens
-  @OneToMany(() => InterChainToken, it => it.origin)
-  interchainTokens: InterChainToken[];
 }
