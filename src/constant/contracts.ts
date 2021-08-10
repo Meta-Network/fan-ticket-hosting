@@ -40,5 +40,19 @@ export const MULTICALL_NETWORKS: AddressBookForNetwork = {
   [ChainId.BSC_TESTNET]: '0xe348b292e8eA5FAB54340656f3D374b259D658b8',
 };
 
+type InterChainContractsList = Partial<
+  Record<ChainId, {
+    Registry: string;
+    Factory: string;
+  }>
+>;
+
+export const InterChainContracts: InterChainContractsList = {
+  [ChainId.RINKEBY]: {
+    Registry: '0x26067a46f642Aa6571dA34888f8fa030Dbb471DB',
+    Factory: '0x0726F63Eb67a2AF09507cE109308D762d18BEd42'
+  }
+};
+
 export const currentContracts = CONTRACTS[currentChainId];
 export const currentMulticall = MULTICALL_NETWORKS[currentChainId];

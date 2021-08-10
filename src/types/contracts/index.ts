@@ -16,6 +16,10 @@ export type { IERC20Sig } from "./IERC20Sig";
 export type { FanTicketFactory } from "./FanTicketFactory";
 export type { FanTicketV2 } from "./FanTicketV2";
 export type { MetaNetworkRoleRegistry } from "./MetaNetworkRoleRegistry";
+export type { InterChainFanTicket } from "./InterChainFanTicket";
+export type { InterChainFanTicketFactory } from "./InterChainFanTicketFactory";
+export type { InterChainParking } from "./InterChainParking";
+export type { IInterChainParking } from "./IInterChainParking";
 
 export { AccessControl__factory } from "./factories/AccessControl__factory";
 export { IAccessControl__factory } from "./factories/IAccessControl__factory";
@@ -32,3 +36,7 @@ export { IERC20Sig__factory } from "./factories/IERC20Sig__factory";
 export { FanTicketFactory__factory } from "./factories/FanTicketFactory__factory";
 export { FanTicketV2__factory } from "./factories/FanTicketV2__factory";
 export { MetaNetworkRoleRegistry__factory } from "./factories/MetaNetworkRoleRegistry__factory";
+export { InterChainFanTicket__factory } from "./factories/InterChainFanTicket__factory";
+export { InterChainFanTicketFactory__factory } from "./factories/InterChainFanTicketFactory__factory";
+export { InterChainParking__factory } from "./factories/InterChainParking__factory";
+export { IInterChainParking__factory } from "./factories/IInterChainParking__factory";
