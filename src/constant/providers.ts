@@ -19,10 +19,10 @@ export const providers: {
   //     'kovan',
   //     process.env.ALCHEMY_APIKEY,
   //   ),
-  // [ChainId.RINKEBY]: new ethers.providers.AlchemyProvider(
-  //     'rinkeby',
-  //     process.env.ALCHEMY_APIKEY,
-  // ),
+  [ChainId.RINKEBY]: new ethers.providers.AlchemyProvider(
+      'rinkeby',
+      process.env.ALCHEMY_APIKEY,
+  ),
   //   [ChainId.GÖRLI]: new ethers.providers.AlchemyProvider(
   //     'gorli',
   //     process.env.ALCHEMY_APIKEY,

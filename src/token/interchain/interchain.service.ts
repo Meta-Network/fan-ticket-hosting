@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotImplementedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'ethers';
 import { BigNumber } from 'ethers';
@@ -38,6 +38,9 @@ export class InterchainService {
     }
 
     async requestInterChainCreationPermit(token: Token, targetChainId: ChainId) {
+        if (!InterChainContracts[targetChainId]) {
+            throw new BadRequestException(`Unsupported network id ${targetChainId}`)
+        }
         const matched = await this.tokenRepo.findOne({
             where: {
                 origin: { id: token.id },
