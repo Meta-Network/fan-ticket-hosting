@@ -50,7 +50,7 @@ export type InterChainCreationPermit = {
   symbol: string;
   tokenId: BigNumberish;
   originChainId: BigNumberish;
-  v: BigNumberish;
+  v: number;
   r: string;
   s: string;
 };

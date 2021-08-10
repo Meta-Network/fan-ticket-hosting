@@ -1,19 +1,28 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotImplementedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'ethers';
 import { BigNumber } from 'ethers';
 import { ChainId, currentChainId } from 'src/constant';
 import { InterChainContracts } from 'src/constant/contracts';
 import { providers } from 'src/constant/providers';
 import { InterChainToken } from 'src/entities/InterChainToken';
+import { InterChainTransaction } from 'src/entities/InterChainTransaction';
 import { Token } from 'src/entities/Token';
+import { TransactionStatus } from 'src/types';
 import { InterChainFanTicketFactory__factory, InterChainFanTicket__factory } from 'src/types/contracts';
+import { Repository } from 'typeorm';
 import { InterChainPermitService } from './permit';
 
 @Injectable()
 export class InterchainService {
     private adminWallet: Wallet;
 
-    constructor() {
+    constructor(
+        @InjectRepository(InterChainTransaction)
+        private readonly txRepo: Repository<InterChainTransaction>,
+        @InjectRepository(InterChainToken)
+        private readonly tokenRepo: Repository<InterChainToken>,
+    ) {
         this.adminWallet = Wallet.createRandom()
     }
 
@@ -29,7 +38,15 @@ export class InterchainService {
     }
 
     async requestInterChainCreationPermit(token: Token, targetChainId: ChainId) {
-        // @todo: check is InterChain Token exist for `token` and `targetChainId`
+        const matched = await this.tokenRepo.findOne({
+            where: {
+                origin: { id: token.id },
+                chainId: targetChainId
+            }
+        })
+        if (matched) {
+            throw new ConflictException(`Interchain token was created for chain ${targetChainId}`)
+        }
         const targetProvider = providers[targetChainId];
         const adminWallet = this.adminWallet.connect(providers[targetChainId]);
         const icFTFactory = InterChainFanTicketFactory__factory.connect(
@@ -45,7 +62,16 @@ export class InterchainService {
             token.id,
             currentChainId
         )
-        // @todo: write the permit into the DB
+        const computedCreationAddress = await icFTFactory.computeAddress(token.name, token.symbol);
+
+        // write the permit into the DB
+        await this.tokenRepo.save({
+            r: creationPermit.r, s: creationPermit.s, v: creationPermit.v,
+            origin: token, chainId: currentChainId, 
+            address: computedCreationAddress, 
+            txHash: null, status: TransactionStatus.PENDING
+        })
+
         return creationPermit;
     }
 

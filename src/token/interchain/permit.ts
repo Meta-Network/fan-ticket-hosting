@@ -187,7 +187,7 @@ export class InterChainPermitService {
         };
     }
 
-    static async InterChainCreationPermitConstuctor(
+    static async CreationPermitConstuctor(
         factory: InterChainFanTicketFactory,
         adminWallet: Wallet,
         originAddress: string,
