@@ -6,11 +6,13 @@ import { Account } from 'src/entities/Account';
 import { OutTransaction } from 'src/entities/OutTransaction';
 import { Token } from 'src/entities/Token';
 import { ClearingHouseModule } from 'src/clearing-house/clearing-house.module';
+import { InterchainModule } from './interchain/interchain.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Token, Account, OutTransaction]),
     ClearingHouseModule,
+    InterchainModule,
   ],
   providers: [TokenService],
   controllers: [TokenController],
