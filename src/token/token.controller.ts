@@ -47,6 +47,7 @@ export class TokenController {
   }
 
   @ApiQuery({ name: 'type', enum: TransactionType })
+  @UseGuards(JwtAuthGuard)
   @Post(':tokenId/transaction/')
   async newTransaction(
     @Query('type') type: TransactionType,
