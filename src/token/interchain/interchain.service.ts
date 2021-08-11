@@ -83,7 +83,7 @@ export class InterchainService {
         // write the permit into the DB
         await this.icTokenRepo.save({
             r: creationPermit.r, s: creationPermit.s, v: creationPermit.v,
-            origin: token, chainId: currentChainId, 
+            origin: token, chainId: targetChainId, 
             address: computedCreationAddress, 
             txHash: null, status: TransactionStatus.PENDING
         })

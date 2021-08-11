@@ -1,4 +1,4 @@
-import { BadRequestException, Get } from '@nestjs/common';
+import { BadRequestException, ConflictException, Get } from '@nestjs/common';
 import { Controller, NotFoundException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -49,6 +49,11 @@ export class InterchainController {
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseIntPipe) chainId: number,
     ): Promise<any> {
+        const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
+        console.info('interchainToken', interchainToken)
+        if (interchainToken) {
+            throw new ConflictException(`Creation permit was created already for token on chainId ${chainId}`)
+        }
         const token = await this.originalTokenRepo.findOne(tokenId, {
             relations: ['owner']
         });
