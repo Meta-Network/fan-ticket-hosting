@@ -13,13 +13,13 @@ export class InterchainController {
 
     constructor(private readonly service: InterchainService,
         @InjectRepository(Token)
-        private readonly tokenRepo: Repository<Token>,) {}
+        private readonly originalTokenRepo: Repository<Token>,) {}
 
     @Get('/:tokenId')
     async findInterChained(
         @Param('tokenId', ParseIntPipe) tokenId: number,
     ): Promise<any> {
-        const token = await this.tokenRepo.findOne(tokenId, {
+        const token = await this.originalTokenRepo.findOne(tokenId, {
             relations: ['interchainTokens']
         });
         if (!token) {
@@ -34,7 +34,7 @@ export class InterchainController {
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseIntPipe) chainId: number,
     ): Promise<any> {
-        const token = await this.tokenRepo.findOne(tokenId);
+        const token = await this.originalTokenRepo.findOne(tokenId);
         if (!token) {
           throw new NotFoundException("No Such Token exist.")
         }
@@ -49,13 +49,14 @@ export class InterchainController {
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseIntPipe) chainId: number,
     ): Promise<any> {
-        const token = await this.tokenRepo.findOne(tokenId, {
+        const token = await this.originalTokenRepo.findOne(tokenId, {
             relations: ['owner']
         });
         if (!token) {
           throw new NotFoundException("No Such Token exist.")
         }
         if (token.owner.id !== ownerId) {
+            console.error(`Expected ${token.owner.id}, got ${ownerId}`)
             throw new BadRequestException("You are not the owner of this token.")
         }
         const permit = await this.service.requestInterChainCreationPermit(token, chainId)

@@ -21,7 +21,7 @@ export class InterchainService {
         @InjectRepository(InterChainTransaction)
         private readonly txRepo: Repository<InterChainTransaction>,
         @InjectRepository(InterChainToken)
-        private readonly tokenRepo: Repository<InterChainToken>,
+        private readonly icTokenRepo: Repository<InterChainToken>,
     ) {
         // @todo: load this from config
         this.adminWallet = Wallet.createRandom()
@@ -39,14 +39,14 @@ export class InterchainService {
     }
 
     async getInterChainTokens(tokenId: number): Promise<InterChainToken[]> {
-        const matched = await this.tokenRepo.find({
+        const matched = await this.icTokenRepo.find({
             where: { origin: { id: tokenId } }
         })
         return matched;
     }
 
     async getInterChainToken(tokenId: number, targetChainId: ChainId): Promise<InterChainToken> {
-        const matched = await this.tokenRepo.findOne({
+        const matched = await this.icTokenRepo.findOne({
             where: {
                 origin: { id: tokenId },
                 chainId: targetChainId
@@ -81,7 +81,7 @@ export class InterchainService {
         const computedCreationAddress = await icFTFactory.computeAddress(token.name, token.symbol);
 
         // write the permit into the DB
-        await this.tokenRepo.save({
+        await this.icTokenRepo.save({
             r: creationPermit.r, s: creationPermit.s, v: creationPermit.v,
             origin: token, chainId: currentChainId, 
             address: computedCreationAddress, 
