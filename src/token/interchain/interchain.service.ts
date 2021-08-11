@@ -1,4 +1,5 @@
-import { BadRequestException, ConflictException, Injectable, NotImplementedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotImplementedException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'ethers';
 import { BigNumber } from 'ethers';
@@ -16,15 +17,20 @@ import { InterChainPermitService } from './permit';
 @Injectable()
 export class InterchainService {
     private adminWallet: Wallet;
+    logger: Logger;
 
     constructor(
         @InjectRepository(InterChainTransaction)
         private readonly txRepo: Repository<InterChainTransaction>,
         @InjectRepository(InterChainToken)
         private readonly icTokenRepo: Repository<InterChainToken>,
+        private readonly configService: ConfigService,
     ) {
-        // @todo: load this from config
-        this.adminWallet = Wallet.createRandom()
+        this.logger = new Logger('InterchainTokenService')
+        // @load this from config
+        const privateKey = configService.get<string>('privateKeys.creationPermitSigner');
+        this.adminWallet = new Wallet(privateKey)
+        this.logger.verbose(`Permit Signer Wallet is ${this.adminWallet.address}`)
     }
 
 
