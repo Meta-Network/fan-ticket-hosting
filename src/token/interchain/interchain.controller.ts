@@ -1,3 +1,4 @@
+import { BadRequestException, Get } from '@nestjs/common';
 import { Controller, NotFoundException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -14,6 +15,33 @@ export class InterchainController {
         @InjectRepository(Token)
         private readonly tokenRepo: Repository<Token>,) {}
 
+    @Get('/:tokenId')
+    async findInterChained(
+        @Param('tokenId', ParseIntPipe) tokenId: number,
+    ): Promise<any> {
+        const token = await this.tokenRepo.findOne(tokenId, {
+            relations: ['interchainTokens']
+        });
+        if (!token) {
+            throw new NotFoundException("No Such Token exist.")
+        }
+
+        return { token, interchained: token.interchainTokens }
+    }
+
+    @Get('/:tokenId/:chainId')
+    async findInterChainTokenByTokenId(
+        @Param('tokenId', ParseIntPipe) tokenId: number,
+        @Param('chainId', ParseIntPipe) chainId: number,
+    ): Promise<any> {
+        const token = await this.tokenRepo.findOne(tokenId);
+        if (!token) {
+          throw new NotFoundException("No Such Token exist.")
+        }
+        const interchainToken = await this.service.getInterChainToken(token.id, chainId)
+        return { interchainToken }
+    }
+
     @Post('/:tokenId/:chainId')
     @UseGuards(JwtAuthGuard)
     async requestInterChainTokenCreationPermit(
@@ -21,9 +49,14 @@ export class InterchainController {
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseIntPipe) chainId: number,
     ): Promise<any> {
-        const token = await this.tokenRepo.findOne(tokenId);
+        const token = await this.tokenRepo.findOne(tokenId, {
+            relations: ['owner']
+        });
         if (!token) {
           throw new NotFoundException("No Such Token exist.")
+        }
+        if (token.owner.id !== ownerId) {
+            throw new BadRequestException("You are not the owner of this token.")
         }
         const permit = await this.service.requestInterChainCreationPermit(token, chainId)
         return { permit }

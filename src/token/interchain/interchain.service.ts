@@ -23,6 +23,7 @@ export class InterchainService {
         @InjectRepository(InterChainToken)
         private readonly tokenRepo: Repository<InterChainToken>,
     ) {
+        // @todo: load this from config
         this.adminWallet = Wallet.createRandom()
     }
 
@@ -37,16 +38,28 @@ export class InterchainService {
         return { provider, connectedAdminWallet, connectedFactory }
     }
 
+    async getInterChainTokens(tokenId: number): Promise<InterChainToken[]> {
+        const matched = await this.tokenRepo.find({
+            where: { origin: { id: tokenId } }
+        })
+        return matched;
+    }
+
+    async getInterChainToken(tokenId: number, targetChainId: ChainId): Promise<InterChainToken> {
+        const matched = await this.tokenRepo.findOne({
+            where: {
+                origin: { id: tokenId },
+                chainId: targetChainId
+            }
+        })
+        return matched;
+    }
+
     async requestInterChainCreationPermit(token: Token, targetChainId: ChainId) {
         if (!InterChainContracts[targetChainId]) {
             throw new BadRequestException(`Unsupported network id ${targetChainId}`)
         }
-        const matched = await this.tokenRepo.findOne({
-            where: {
-                origin: { id: token.id },
-                chainId: targetChainId
-            }
-        })
+        const matched = await this.getInterChainToken(token.id, targetChainId)
         if (matched) {
             throw new ConflictException(`Interchain token was created for chain ${targetChainId}`)
         }
