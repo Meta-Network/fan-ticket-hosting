@@ -13,7 +13,10 @@ import { Account } from './Account';
 export enum TransactionType {
   TRANSFER = 'transfer', // use `transferFromBySig()`
   MINT = 'mint', // use `mintBySig()`
-  APPROVE = 'approve', // use `permit()`
+  APPROVE = 'approve', // use `permit()`,
+  // Interchain Parking related TX
+  INTERCHAIN_DEPOSIT = 'ic_deposit', 
+  INTERCHAIN_WITHDRAW = "ic_withdraw"
 }
 
 @Entity()
