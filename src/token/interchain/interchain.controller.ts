@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ChainId } from 'src/constant';
 import { CurrentUserId } from 'src/decorators/user.decorator';
-import { InterChainToken } from 'src/entities/InterChainToken';
 import { Token } from 'src/entities/Token';
 import { ParseChainIdPipe } from 'src/pipes/ParseChainId.pipe';
 import { Repository } from 'typeorm';
@@ -15,7 +14,8 @@ export class InterchainController {
 
     constructor(private readonly service: InterchainService,
         @InjectRepository(Token)
-        private readonly originalTokenRepo: Repository<Token>,) {}
+        private readonly originalTokenRepo: Repository<Token>,
+    ) {}
 
     @Get('/:tokenId')
     async findInterChained(
@@ -66,6 +66,24 @@ export class InterchainController {
             console.error(`Expected ${token.owner.id}, got ${ownerId}`)
             throw new BadRequestException("You are not the owner of this token.")
         }
+        const permit = await this.service.requestInterChainCreationPermit(token, chainId)
+        return { permit }
+    }
+
+    @Post('/:tokenId/:chainId/deposit')
+    @UseGuards(JwtAuthGuard)
+    async depositTokenToInterchain(
+        @CurrentUserId() ownerId: number,
+        @Param('tokenId', ParseIntPipe) tokenId: number,
+        @Param('chainId', ParseChainIdPipe) chainId: ChainId,
+    ): Promise<any> {
+        const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
+        if (!interchainToken) {
+            throw new NotFoundException(`Creation permit was created already for token on chainId ${chainId}`)
+        }
+        // @todo: transfer to Parking
+
+        // @todo: create mint permit for interchain token
         const permit = await this.service.requestInterChainCreationPermit(token, chainId)
         return { permit }
     }
