@@ -236,9 +236,7 @@ export class TokenService {
       deadline: permit.deadline,
       v: permit.v, r: permit.r, s: permit.s,
     };
-    // approve does not need approve
-    // since clearing house is not `transferFrom`
-    // do `transferFrom` with `transferFromBySig`
+    // use clearing house to do `approve` with `permit`
     // write permit into DB for clearing
     await this.txRepo.save(tx)
   }
