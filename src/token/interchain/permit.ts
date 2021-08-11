@@ -236,7 +236,7 @@ export class InterChainPermitService {
         };
       }
 
-    async ParkingWithdrawConstuctor(
+    static async ParkingWithdrawConstuctor(
         parking: InterChainParking,
         token: string,
         admin: Wallet,
