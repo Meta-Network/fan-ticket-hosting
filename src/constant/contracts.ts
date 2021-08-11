@@ -53,8 +53,8 @@ type InterChainContractsList = Partial<
 
 export const InterChainContracts: InterChainContractsList = {
   [ChainId.RINKEBY]: {
-    Registry: '0x26067a46f642Aa6571dA34888f8fa030Dbb471DB',
-    Factory: '0x0726F63Eb67a2AF09507cE109308D762d18BEd42'
+    Registry: '0xD05aAa1184e12F1a30eA85E572E5F2577F7c7037',
+    Factory: '0x8738521C063fC643eFA2df6Ac9A8Cd9f3e14Ac2B'
   }
 };
 
