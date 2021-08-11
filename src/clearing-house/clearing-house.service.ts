@@ -7,7 +7,7 @@ import { currentContracts } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
 import { GasLimitService } from 'src/cron/gas-limit/gas-limit.service';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
-import { ApproveOrder, MintOrder, TransferOrder, TxType } from 'src/token/typing';
+import { ApproveOrder, ICDepositOrder, ICWithdrawOrder, MintOrder, TransactionOrder, TransferOrder, TxType } from 'src/token/typing';
 import { TransactionStatus } from 'src/types';
 import { FanTicketClearingHouse, FanTicketClearingHouse__factory } from 'src/types/contracts';
 import { Repository } from 'typeorm';
@@ -37,12 +37,14 @@ export class ClearingHouseService {
         );
     }
 
-    transactionParser(transactions: OutTransaction[]): Array<TransferOrder | MintOrder | ApproveOrder> {
+    transactionParser(transactions: OutTransaction[]): Array<TransactionOrder> {
         return transactions.map((tx) => {
             const typeMapping: Record<TransactionType, TxType> = {
                 [TransactionType.MINT]: TxType.Mint,
                 [TransactionType.APPROVE]: TxType.Permit,
                 [TransactionType.TRANSFER]: TxType.Transfer,
+                [TransactionType.INTERCHAIN_DEPOSIT]: TxType.InterChainDeposit,
+                [TransactionType.INTERCHAIN_WITHDRAW]: TxType.InterChainWithdraw,
             }
             return { 
                 token: tx.token.address,

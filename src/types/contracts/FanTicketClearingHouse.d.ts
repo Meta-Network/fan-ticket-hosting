@@ -22,7 +22,9 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 export enum TxType {
   Transfer = 0,
   Mint = 1,
-  Permit = 2
+  Permit = 2,
+  InterChainDeposit = 3,
+  InterChainWithdraw = 4
 }
 
 interface FanTicketClearingHouseInterface extends ethers.utils.Interface {

@@ -23,7 +23,7 @@ export const CONTRACTS: {
   [ChainId.BSC_TESTNET]: {
     Registry: "0x30444fBE67E7292EaBafBc970537dAF5D0b0F2C7",
     Factory: "0xeB6aD1485ED16497082123b6d4213A129B6e16D2",
-    ClearingHouse: "0x5ECc9dB489E94a3907FfDC3bC70f33C824af73DE",
+    ClearingHouse: "0xBCEAd2cbb92De10ca9609A051A965A1FBB4987F4",
     Parking: '0xC0F2C0843edb2Fa66Bc498463D9d2Dd93d5EeEae'
   },
   [ChainId.BSC_MAINNET]: {
@@ -53,8 +53,8 @@ type InterChainContractsList = Partial<
 
 export const InterChainContracts: InterChainContractsList = {
   [ChainId.RINKEBY]: {
-    Registry: '0xD05aAa1184e12F1a30eA85E572E5F2577F7c7037',
-    Factory: '0x8738521C063fC643eFA2df6Ac9A8Cd9f3e14Ac2B'
+    "Registry": "0xCd860fc97cDe1B3fD8fc407EAeC4E4962E34FCD9",
+    "Factory": "0xdc0cC9692dCD74D7fE018305Ce6D3a87C225700F"
   }
 };
 
