@@ -125,7 +125,7 @@ export class InterchainService {
     );
 
     // write the permit into the DB
-    await this.icTokenRepo.save({
+    const saved = await this.icTokenRepo.save({
       r: creationPermit.r,
       s: creationPermit.s,
       v: creationPermit.v,
@@ -136,7 +136,7 @@ export class InterchainService {
       status: TransactionStatus.PENDING,
     });
 
-    return creationPermit;
+    return saved;
   }
 
   /**
