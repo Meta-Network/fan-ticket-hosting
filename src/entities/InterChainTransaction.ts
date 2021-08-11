@@ -6,9 +6,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { InterChainToken } from './InterChainToken';
 import { Account } from './Account';
+import { OutTransaction } from './OutTransaction';
 
 export enum InterChainTransactionType {
   BURN = 'burn', // External chain => Original chain
@@ -55,6 +58,10 @@ export class InterChainTransaction {
     length: 78,
   })
   value: string;
+
+  @OneToOne(() => OutTransaction)
+  @JoinColumn()
+  relatedTx: OutTransaction;
 
   /**
    * Signature Related
