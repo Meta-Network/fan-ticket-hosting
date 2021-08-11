@@ -2,9 +2,11 @@ import { BadRequestException, ConflictException, Get } from '@nestjs/common';
 import { Controller, NotFoundException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ChainId } from 'src/constant';
 import { CurrentUserId } from 'src/decorators/user.decorator';
 import { InterChainToken } from 'src/entities/InterChainToken';
 import { Token } from 'src/entities/Token';
+import { ParseChainIdPipe } from 'src/pipes/ParseChainId.pipe';
 import { Repository } from 'typeorm';
 import { InterchainService } from './interchain.service';
 
@@ -32,7 +34,7 @@ export class InterchainController {
     @Get('/:tokenId/:chainId')
     async findInterChainTokenByTokenId(
         @Param('tokenId', ParseIntPipe) tokenId: number,
-        @Param('chainId', ParseIntPipe) chainId: number,
+        @Param('chainId', ParseChainIdPipe) chainId: ChainId,
     ): Promise<any> {
         const token = await this.originalTokenRepo.findOne(tokenId);
         if (!token) {
@@ -47,7 +49,7 @@ export class InterchainController {
     async requestInterChainTokenCreationPermit(
         @CurrentUserId() ownerId: number,
         @Param('tokenId', ParseIntPipe) tokenId: number,
-        @Param('chainId', ParseIntPipe) chainId: number,
+        @Param('chainId', ParseChainIdPipe) chainId: ChainId,
     ): Promise<any> {
         const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
         console.info('interchainToken', interchainToken)
