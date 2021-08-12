@@ -25,7 +25,7 @@ interface InterChainParkingInterface extends ethers.utils.Interface {
     "OPERATOR_ROLE()": FunctionFragment;
     "_WITHDRAW_PERMIT_TYPEHASH()": FunctionFragment;
     "deposit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "depositsForTokenAndOwner(address,address)": FunctionFragment;
+    "depositsForToken(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -61,8 +61,8 @@ interface InterChainParkingInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositsForTokenAndOwner",
-    values: [string, string]
+    functionFragment: "depositsForToken",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -119,7 +119,7 @@ interface InterChainParkingInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "depositsForTokenAndOwner",
+    functionFragment: "depositsForToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -215,9 +215,8 @@ export class InterChainParking extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    depositsForTokenAndOwner(
+    depositsForToken(
       arg0: string,
-      arg1: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -287,11 +286,7 @@ export class InterChainParking extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  depositsForTokenAndOwner(
-    arg0: string,
-    arg1: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  depositsForToken(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -359,9 +354,8 @@ export class InterChainParking extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    depositsForTokenAndOwner(
+    depositsForToken(
       arg0: string,
-      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -461,9 +455,8 @@ export class InterChainParking extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    depositsForTokenAndOwner(
+    depositsForToken(
       arg0: string,
-      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -541,9 +534,8 @@ export class InterChainParking extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositsForTokenAndOwner(
+    depositsForToken(
       arg0: string,
-      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
