@@ -119,7 +119,7 @@ export class TokenService {
     to: string,
     value: BigNumber,
     password: string
-  ): Promise<void> {
+  ): Promise<OutTransaction> {
     const tokenContract = FanTicketV2__factory.connect(_token.address, currentProvider);
 
     // get nonce from DB
@@ -146,7 +146,7 @@ export class TokenService {
     // throw Error if estimate was reverted
     await this.chService.estimateTransactionStatus(tx as OutTransaction);
     // write permit into DB for clearing
-    await this.txRepo.save(tx)
+    return this.txRepo.save(tx)
   }
 
   /**
@@ -165,7 +165,7 @@ export class TokenService {
     to: string,
     value: BigNumber,
     password: string
-  ): Promise<void> {
+  ): Promise<OutTransaction> {
     // @todo check minter role
     const token = FanTicketV2__factory.connect(_token.address, currentProvider);
     // get nonce from DB
@@ -192,7 +192,7 @@ export class TokenService {
     // throw Error if estimate was reverted
     await this.chService.estimateTransactionStatus(tx as OutTransaction);
     // write permit into DB for clearing
-    await this.txRepo.save(tx)
+    return this.txRepo.save(tx)
   }
 
   /**
@@ -212,7 +212,7 @@ export class TokenService {
     spender: string,
     value: BigNumber,
     password: string
-  ): Promise<void> {
+  ): Promise<OutTransaction> {
     const tokenContract = FanTicketV2__factory.connect(_token.address, currentProvider);
 
     // get nonce from DB
@@ -238,6 +238,6 @@ export class TokenService {
     };
     // use clearing house to do `approve` with `permit`
     // write permit into DB for clearing
-    await this.txRepo.save(tx)
+    return this.txRepo.save(tx)
   }
 }
