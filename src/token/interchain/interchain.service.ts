@@ -19,7 +19,7 @@ import {
   InterChainTransaction,
   InterChainTransactionType,
 } from 'src/entities/InterChainTransaction';
-import { OutTransaction } from 'src/entities/OutTransaction';
+import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
 import { Token } from 'src/entities/Token';
 import { TransactionStatus } from 'src/types';
 import {
@@ -170,10 +170,13 @@ export class InterchainService {
     ownerId: number,
     value: BigNumber,
     password: string
-  ): Promise<void> {
+  ): Promise<OutTransaction> {
     const ownerWallet = await this.accRepo.findOne(ownerId);
     // transfer to Parking
-    await this.tokenService.transfer(originalToken, ownerWallet, this.parkingContract.address, value, password);
+    return this.tokenService.transfer(
+      originalToken, ownerWallet, this.parkingContract.address, value, password,
+      TransactionType.INTERCHAIN_DEPOSIT
+    );
   }
 
   /**

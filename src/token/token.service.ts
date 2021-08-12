@@ -118,7 +118,8 @@ export class TokenService {
     from: Account,
     to: string,
     value: BigNumber,
-    password: string
+    password: string,
+    type = TransactionType.TRANSFER
   ): Promise<OutTransaction> {
     const tokenContract = FanTicketV2__factory.connect(_token.address, currentProvider);
 
@@ -137,7 +138,7 @@ export class TokenService {
       token: _token,
       from,
       to,
-      type: TransactionType.TRANSFER,
+      type,
       // use hexstring for storage
       value: value.toHexString(),
       deadline: permit.deadline,
