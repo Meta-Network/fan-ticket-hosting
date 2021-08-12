@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { ChainId, currentChainId } from './index';
 
 export const providers: {
-  [chainId in ChainId]?: ethers.providers.Provider;
+  [chainId in ChainId]?: ethers.providers.JsonRpcProvider;
 } = {
   [ChainId.BSC_TESTNET]: new ethers.providers.JsonRpcProvider(
     'https://data-seed-prebsc-2-s2.binance.org:8545/',
