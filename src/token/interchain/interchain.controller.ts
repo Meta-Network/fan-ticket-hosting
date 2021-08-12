@@ -70,6 +70,21 @@ export class InterchainController {
         return { permit }
     }
 
+    @Post('/:tokenId/:chainId/enable')
+    // @UseGuards(JwtAuthGuard)
+    async enableInterChainToken(
+        // @CurrentUserId() ownerId: number,
+        @Param('tokenId', ParseIntPipe) tokenId: number,
+        @Param('chainId', ParseChainIdPipe) chainId: ChainId,
+    ): Promise<any> {
+        const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
+        if (!interchainToken) {
+            throw new NotFoundException(`Not found for token on chainId ${chainId}`)
+        }
+        await this.service.enableICToken(interchainToken)
+        return { isCreated: true }
+    }
+
     @Post('/:tokenId/:chainId/deposit')
     @UseGuards(JwtAuthGuard)
     async depositTokenToInterchain(
@@ -78,13 +93,13 @@ export class InterchainController {
         @Param('chainId', ParseChainIdPipe) chainId: ChainId,
     ): Promise<any> {
         const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
-        if (!interchainToken) {
-            throw new NotFoundException(`Creation permit was created already for token on chainId ${chainId}`)
-        }
-        // @todo: transfer to Parking
+        // if (!interchainToken) {
+        //     throw new NotFoundException(`Creation permit was created already for token on chainId ${chainId}`)
+        // }
+        // // @todo: transfer to Parking
 
-        // @todo: create mint permit for interchain token
-        const permit = await this.service.requestInterChainCreationPermit(token, chainId)
-        return { permit }
+        // // @todo: create mint permit for interchain token
+        // const permit = await this.service.requestInterChainCreationPermit(token, chainId)
+        // return { permit }
     }
 }

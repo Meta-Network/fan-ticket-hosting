@@ -139,6 +139,27 @@ export class InterchainService {
     return saved;
   }
 
+  async enableICToken(token: InterChainToken): Promise<boolean> {
+    if (token.status === TransactionStatus.SUCCESS) {
+      throw new BadRequestException("Token was enabled already");
+    }
+    const contract = InterChainFanTicket__factory.connect(
+      token.address,
+      providers[token.chainId]
+    );
+    try {
+      // should be able to call if deployed
+      await contract.name()
+    } catch (error) {
+      throw new BadRequestException("Failed to call `name`, please make sure the contract was deployed. Contact support team if you need help.");
+    }
+    await this.icTokenRepo.update(token.id, {
+      status: TransactionStatus.SUCCESS,
+      r: '', s: '', v: 0
+    })
+    return true;
+  }
+
   /**
    * generate permit to mint InterChainToken
    * require user's action to send since we are not paying for *any* interchain tx
