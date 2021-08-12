@@ -13,6 +13,7 @@ import { ChainId, currentChainId } from 'src/constant';
 import { currentContracts, InterChainContracts } from 'src/constant/contracts';
 import { providers } from 'src/constant/providers';
 import { OnlyCreatedICToken } from 'src/decorators/interchain-token.decorator';
+import { Account } from 'src/entities/Account';
 import { InterChainToken } from 'src/entities/InterChainToken';
 import {
   InterChainTransaction,
@@ -47,7 +48,10 @@ export class InterchainService {
     @InjectRepository(Token)
     private readonly tokenRepo: Repository<Token>,
     private readonly configService: ConfigService,
-  ) // private readonly tokenService: TokenService,
+    @InjectRepository(Account)
+    private readonly accRepo: Repository<Account>,
+    private readonly tokenService: TokenService
+  )
   {
     this.logger = new Logger('InterchainTokenService');
     // @load this from config
@@ -90,6 +94,7 @@ export class InterchainService {
         origin: { id: tokenId },
         chainId: targetChainId,
       },
+      relations: ['origin']
     });
     return matched;
   }
@@ -160,6 +165,17 @@ export class InterchainService {
     return true;
   }
 
+  async depositToParking(
+    originalToken: Token,
+    ownerId: number,
+    value: BigNumber,
+    password: string
+  ): Promise<void> {
+    const ownerWallet = await this.accRepo.findOne(ownerId);
+    // transfer to Parking
+    await this.tokenService.transfer(originalToken, ownerWallet, this.parkingContract.address, value, password);
+  }
+
   /**
    * generate permit to mint InterChainToken
    * require user's action to send since we are not paying for *any* interchain tx
@@ -168,7 +184,7 @@ export class InterchainService {
    * @param value the amount to mint
    */
   @OnlyCreatedICToken
-  async mint(token: InterChainToken, to: string, value: BigNumber) {
+  async mint(token: InterChainToken, to: string, value: BigNumber, parkingDepositTx: OutTransaction) {
     const { connectedAdminWallet, provider } = this.getInfoForChain(
       token.chainId,
     );
@@ -185,6 +201,17 @@ export class InterchainService {
       value,
       nonce,
     );
+    await this.icTxRepo.save({
+      type: InterChainTransactionType.MINT,
+      relatedTx: parkingDepositTx,
+      token,
+      from: parkingDepositTx.from,
+      value: value.toString(),
+      r: permit.r, s: permit.s, v: permit.v, deadline: permit.deadline,
+      txHash: null,
+      status: TransactionStatus.PENDING,
+      to,
+    })
     return permit;
   }
 
@@ -220,6 +247,7 @@ export class InterchainService {
     // @todo: check txHash is burnt or not & parse event from receipt
     throw new NotImplementedException('T.B.I');
   }
+  
 
   async getICDepositNonce(
     token: InterChainToken,

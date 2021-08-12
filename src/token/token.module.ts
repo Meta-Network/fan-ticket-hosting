@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { TokenService } from './token.service';
 import { TokenController } from './token.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { Token } from 'src/entities/Token';
 import { ClearingHouseModule } from 'src/clearing-house/clearing-house.module';
 import { InterchainModule } from './interchain/interchain.module';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([Token, Account, OutTransaction]),
@@ -15,6 +16,7 @@ import { InterchainModule } from './interchain/interchain.module';
     InterchainModule,
   ],
   providers: [TokenService],
+  exports: [TokenService],
   controllers: [TokenController],
 })
 export class TokenModule {}
