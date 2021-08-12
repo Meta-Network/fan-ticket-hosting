@@ -91,6 +91,7 @@ export class OutTransaction {
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true
   })
   txHash: string;
 
