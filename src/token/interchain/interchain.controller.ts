@@ -62,7 +62,8 @@ export class InterchainController {
         if (!token) {
           throw new NotFoundException("No Such Token exist.")
         }
-        if (token.owner.id !== ownerId) {
+        const isOwnerOnlyOP = false;
+        if (isOwnerOnlyOP && token.owner.id !== ownerId) {
             console.error(`Expected ${token.owner.id}, got ${ownerId}`)
             throw new BadRequestException("You are not the owner of this token.")
         }
