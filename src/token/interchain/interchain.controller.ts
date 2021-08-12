@@ -72,9 +72,7 @@ export class InterchainController {
     }
 
     @Post('/:tokenId/:chainId/enable')
-    // @UseGuards(JwtAuthGuard)
     async enableInterChainToken(
-        // @CurrentUserId() ownerId: number,
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseChainIdPipe) chainId: ChainId,
     ): Promise<any> {
