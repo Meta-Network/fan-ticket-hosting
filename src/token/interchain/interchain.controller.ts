@@ -121,8 +121,8 @@ export class InterchainController {
             throw new NotFoundException(`Token not found on chainId ${chainId}`)
         }
         // transfer original token to Parking
-        await this.service.checkInterChainTokenWithdraw(chainId, txHash)
+        const burntEvents = await this.service.checkInterChainTokenWithdraw(chainId, txHash)
         // create mint permit for interchain token
-        return { msg: 'ok' }
+        return { msg: 'ok', burntEvents }
     }
 }

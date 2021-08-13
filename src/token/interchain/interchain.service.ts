@@ -250,11 +250,14 @@ export class InterchainService {
     if (!icToken) {
       throw new Error("Sorry but it seems it's not our interchained token.");
     }
+
+    // check txHash is burnt or not & parse events from receipt
     const icTokenContract = InterChainFanTicket__factory.connect(icToken.address, providers[icToken.chainId]);
     const parsedLogs = receipt.logs.map(log => icTokenContract.interface.parseLog(log))
-    console.info('parsedLogs', parsedLogs)
-    // @todo: check txHash is burnt or not & parse event from receipt
-    throw new NotImplementedException('T.B.I');
+    const icBurnEvents = parsedLogs.filter((l) => l.name === 'InterChainFanTicketBurnt').map(({ args }) => {
+      return { burner: args.who, receiver: args.burntToTarget, value: args.value }
+    })
+    return icBurnEvents
   }
   
 
