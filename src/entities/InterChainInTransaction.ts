@@ -6,39 +6,41 @@ import {
   UpdateDateColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm';
 import { InterChainToken } from './InterChainToken';
-import { Account } from './Account';
-import { OutTransaction } from './OutTransaction';
-
-export enum InterChainTransactionType {
-  MINT = 'mint', // Original Chain => External chain
-}
+import { Token } from './Token';
 
 @Entity()
-export class InterChainTransaction {
+export class InterChainInTransaction {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ nullable: false })
+  icTokenId: number;
+
+  @ManyToOne(
+    () => InterChainToken,
+    { nullable: false },
+  )
+  icToken: InterChainToken;
 
   @Column({ nullable: false })
   tokenId: number;
 
   @ManyToOne(
-    () => InterChainToken,
-    t => t.transactions,
+    () => Token,
     { nullable: false },
   )
-  token: InterChainToken;
+  token: Token;
 
-  @ManyToOne(
-    () => Account,
-    { nullable: false },
-  )
-  from: Account;
+  // `from` should be the burner itself
+  @Column({
+    type: 'char',
+    length: 42,
+  })
+  from: string;
 
-  // `to` can be anything, as long it's an eth address
+  // `to` should be the `burn(to, val)`'s `to`
   @Column({
     type: 'char',
     length: 42,
@@ -46,21 +48,10 @@ export class InterChainTransaction {
   to: string;
 
   @Column({
-    type: 'enum',
-    enum: InterChainTransactionType,
-    nullable: false,
-  })
-  type: InterChainTransactionType;
-
-  @Column({
     type: 'varchar',
     length: 78,
   })
   value: string;
-
-  @OneToOne(() => OutTransaction)
-  @JoinColumn()
-  relatedTx: OutTransaction;
 
   /**
    * Signature Related
