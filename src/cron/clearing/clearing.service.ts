@@ -89,14 +89,18 @@ export class ClearingService {
         // const orders = this.chService.transactionParser(pendingTxs)
         const tx = await this.clearingHouse.handleTransferOrders(pendingTxs);
 
-        await this.txRepo.update(pendingTokenTxs.map(t => t.id), {
-            txHash: tx.hash,
-            status: TransactionStatus.SENDING
-        })
-        await this.icWithdrawRepo.update(withdrawIds, {
-            status: TransactionStatus.SENDING,
-            txHash: tx.hash
-        })
+        if (pendingTokenTxs.length > 0) 
+            await this.txRepo.update(pendingTokenTxs.map(t => t.id), {
+                txHash: tx.hash,
+                status: TransactionStatus.SENDING
+            })
+
+        if (withdrawIds.length > 0)
+            await this.icWithdrawRepo.update(withdrawIds, {
+                status: TransactionStatus.SENDING,
+                txHash: tx.hash
+            })
+        
         // clearing mess
         this.lock = false;
     }
