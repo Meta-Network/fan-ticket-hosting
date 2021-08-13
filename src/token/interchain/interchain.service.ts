@@ -284,11 +284,10 @@ export class InterchainService {
     to: string,
   ): Promise<number> {
     // get nonce = get withdraw tx count
-    const withdrawTxs = await this.icTxRepo.find({
+    const withdrawTxs = await this.icTokenDepositTxRepo.find({
       where: {
         token: { id: token.id },
         to,
-        type: InterChainTransactionType.BURN,
       },
     });
     return withdrawTxs.length;

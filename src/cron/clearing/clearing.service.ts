@@ -6,8 +6,9 @@ import { Wallet } from 'ethers';
 import { ClearingHouseService } from 'src/clearing-house/clearing-house.service';
 import { currentContracts } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
+import { InterChainInTransaction } from 'src/entities/InterChainInTransaction';
 import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
-import { ApproveOrder, MintOrder, TransferOrder, TxType } from 'src/token/typing';
+import { ApproveOrder, MintOrder, TransactionOrder, TransferOrder, TxType } from 'src/token/typing';
 import { TransactionStatus } from 'src/types';
 import { FanTicketClearingHouse, FanTicketClearingHouse__factory } from 'src/types/contracts';
 import { Repository } from 'typeorm';
@@ -23,6 +24,8 @@ export class ClearingService {
     constructor(
         @InjectRepository(OutTransaction)
         private readonly txRepo: Repository<OutTransaction>,
+        @InjectRepository(InterChainInTransaction)
+        private readonly icWithdrawRepo: Repository<InterChainInTransaction>,
         private readonly configService: ConfigService,
         private readonly gasService: GasLimitService,        
         private readonly chService: ClearingHouseService,        
@@ -39,6 +42,24 @@ export class ClearingService {
         );
     }
 
+    async findAndParseICTokenWithdraw(): Promise<{parsedOrder: TransactionOrder[], ids: number[]}> {
+        const pendingWithdrawl = await this.icWithdrawRepo.find({
+            where: {status: TransactionStatus.PENDING,},
+            relations: ['token']
+        });
+        const parsedOrder = pendingWithdrawl.map(({ to, r, s, v, deadline, value, token }) => {
+            return {
+                from: currentContracts.Parking,
+                to,
+                value,
+                _type: TxType.InterChainWithdraw,
+                token: token.address,
+                r, s, v, deadline
+            }
+        })
+        return { parsedOrder, ids: pendingWithdrawl.map(d => d.id) }
+    }
+
     @Cron(CronExpression.EVERY_MINUTE)
     async clearingTransactions(): Promise<void> {
         // a software lock, avoid race condition
@@ -49,25 +70,32 @@ export class ClearingService {
 
         const safeMaxTxQty = Number(this.gasService.latestSafeGasLimit.div("600000").toBigInt())
 
-        const pendingTxs = await this.txRepo.find({
+        const pendingTokenTxs = await this.txRepo.find({
             where: { status: TransactionStatus.PENDING },
             take: safeMaxTxQty,
             relations: ['token', 'from']
         });
+        // clear the ic token withdraw txs
+        const {parsedOrder, ids: withdrawIds} = await this.findAndParseICTokenWithdraw()
+        const pendingTxs = [...this.chService.transactionParser(pendingTokenTxs), ...parsedOrder]
         if (pendingTxs.length === 0) return; // skip
         
         // handling txs
         this.lock = true;
 
-        this.logger.verbose(`Clearing Txs: ${pendingTxs.map(t => t.id).join(', ')}`);
+        this.logger.verbose(`Clearing Txs`);
 
 
-        const orders = this.chService.transactionParser(pendingTxs)
-        const tx = await this.clearingHouse.handleTransferOrders(orders);
+        // const orders = this.chService.transactionParser(pendingTxs)
+        const tx = await this.clearingHouse.handleTransferOrders(pendingTxs);
 
-        await this.txRepo.update(pendingTxs.map(t => t.id), {
+        await this.txRepo.update(pendingTokenTxs.map(t => t.id), {
             txHash: tx.hash,
             status: TransactionStatus.SENDING
+        })
+        await this.icWithdrawRepo.update(withdrawIds, {
+            status: TransactionStatus.SENDING,
+            txHash: tx.hash
         })
         // clearing mess
         this.lock = false;
