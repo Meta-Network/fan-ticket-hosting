@@ -126,4 +126,26 @@ export class ClearingService {
             r: '', s: '', v: 0
         })
     }
+
+    @Cron(CronExpression.EVERY_30_SECONDS)
+    async checkWithdrawFromParkingTx(): Promise<void> {
+        const sendingTxs = await this.icWithdrawRepo.find({
+            where: { status: TransactionStatus.SENDING },
+        })
+        if (sendingTxs.length === 0)
+            return // skip then
+        
+        const relatedTxHashes = [...new Set(sendingTxs.map(t => t.txHash))];
+        const receipts = await Promise.all(relatedTxHashes.map(hash => currentProvider.getTransactionReceipt(hash)))
+        // txReceipt should not be null, and confirmations should >= 3
+        const confirmedTxs = receipts.filter(r => Boolean(r) && r.confirmations >= 3)
+        const confirmedTxHashes = confirmedTxs.map(r => r.transactionHash)
+        const successTxs = sendingTxs.filter(t => confirmedTxHashes.includes(t.txHash))
+        this.logger.verbose(`Success Tx Ids: ${successTxs.map(t => t.id)}`)
+        await this.icWithdrawRepo.update(successTxs.map(t => t.id), {
+            status: TransactionStatus.SUCCESS,
+            // clear the signature as txs are broadcasted
+            r: '', s: '', v: 0
+        })
+    }
 }
