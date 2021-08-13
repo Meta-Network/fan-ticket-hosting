@@ -292,7 +292,7 @@ export class InterchainService {
     // get nonce = get withdraw tx count
     const withdrawTxs = await this.icTokenDepositTxRepo.find({
       where: {
-        token: { id: token.id },
+        icToken: { id: token.id },
         to,
       },
     });
