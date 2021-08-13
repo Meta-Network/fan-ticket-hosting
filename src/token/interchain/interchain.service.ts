@@ -11,7 +11,7 @@ import { Wallet } from 'ethers';
 import { BigNumber } from 'ethers';
 import { ChainId, currentChainId } from 'src/constant';
 import { currentContracts, InterChainContracts } from 'src/constant/contracts';
-import { providers } from 'src/constant/providers';
+import { currentProvider, providers } from 'src/constant/providers';
 import { OnlyCreatedICToken } from 'src/decorators/interchain-token.decorator';
 import { Account } from 'src/entities/Account';
 import { InterChainInTransaction } from 'src/entities/InterChainInTransaction';
@@ -227,7 +227,7 @@ export class InterchainService {
    * @param token the interchain Token
    * @param txHash the transaction hash of burn in otherchain
    */
-  async checkInterChainTokenWithdraw(chain: ChainId, txHash: string) {
+  async checkInterChainTokenWithdraw(chain: ChainId, txHash: string, icToken: InterChainToken) {
     // check is tx exist in DB or not
     const matchedBurn = await this.icTxRepo.findOne({
       txHash,
@@ -243,24 +243,30 @@ export class InterchainService {
         throw new Error(`Tx Not found on chain ${chain}, please double check and try again later`);
     }
 
-    const icToken = await this.icTokenRepo.findOne({
-      where: {
-        address: receipt.to,
-        chainId: chain
-      },
-    });
-
-    if (!icToken) {
-      throw new Error("Sorry but it seems it's not our interchained token.");
+    if (receipt.to !== icToken.address) {
+      throw new Error("Not target token");
     }
+
+    // const icToken = await this.icTokenRepo.findOne({
+    //   where: {
+    //     address: receipt.to,
+    //     chainId: chain
+    //   },
+    // });
+
+    // if (!icToken) {
+    //   throw new Error("Sorry but it seems it's not our interchained token.");
+    // }
 
     // check txHash is burnt or not & parse events from receipt
     const icTokenContract = InterChainFanTicket__factory.connect(icToken.address, providers[icToken.chainId]);
     const parsedLogs = receipt.logs.map(log => icTokenContract.interface.parseLog(log))
     const icBurnEvents = parsedLogs.filter((l) => l.name === 'InterChainFanTicketBurnt').map(({ args }) => {
-      return { burner: args.who, receiver: args.burntToTarget, value: args.value }
+      return { 
+        burner: args.who, receiver: args.burntToTarget, value: args.value
+      }
     })
-    return icBurnEvents
+    return {icBurnEvents}
   }
   
 
@@ -304,7 +310,7 @@ export class InterchainService {
     const permit = await InterChainPermitService.ParkingWithdrawConstuctor(
       this.parkingContract,
       token.origin.address,
-      this.adminWallet,
+      this.adminWallet.connect(currentProvider),
       to,
       value,
       nonce,

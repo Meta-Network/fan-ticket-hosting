@@ -110,7 +110,7 @@ export class InterchainController {
     }
 
     @Post('/:tokenId/:chainId/burn')
-    async checkLogsInTx(
+    async handleWithdrawTx(
         @Param('tokenId', ParseIntPipe) tokenId: number,
         @Param('chainId', ParseChainIdPipe) chainId: ChainId,
         @Query('txHash') txHash: string
@@ -121,8 +121,9 @@ export class InterchainController {
             throw new NotFoundException(`Token not found on chainId ${chainId}`)
         }
         // transfer original token to Parking
-        const burntEvents = await this.service.checkInterChainTokenWithdraw(chainId, txHash)
+        const {icBurnEvents: burntEvents } = await this.service.checkInterChainTokenWithdraw(chainId, txHash, interchainToken)
         // create mint permit for interchain token
+        await Promise.all(burntEvents.map(be => this.service.redeemInterChainToken(interchainToken, be.burner, be.receiver, be.value)))
         return { msg: 'ok', burntEvents }
     }
 }
