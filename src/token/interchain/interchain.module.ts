@@ -7,10 +7,11 @@ import { InterchainService } from './interchain.service';
 import { InterchainController } from './interchain.controller';
 import { Token } from 'src/entities/Token';
 import { OutTransaction } from 'src/entities/OutTransaction';
+import { InterChainInTransaction } from 'src/entities/InterChainInTransaction';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([InterChainToken, Token, OutTransaction, Account, InterChainTransaction]),
+    TypeOrmModule.forFeature([InterChainToken, Token, InterChainInTransaction, OutTransaction, Account, InterChainTransaction]),
   ],
   providers: [InterchainService],
   controllers: [InterchainController]

@@ -14,6 +14,7 @@ import { currentContracts, InterChainContracts } from 'src/constant/contracts';
 import { providers } from 'src/constant/providers';
 import { OnlyCreatedICToken } from 'src/decorators/interchain-token.decorator';
 import { Account } from 'src/entities/Account';
+import { InterChainInTransaction } from 'src/entities/InterChainInTransaction';
 import { InterChainToken } from 'src/entities/InterChainToken';
 import {
   InterChainTransaction,
@@ -44,6 +45,8 @@ export class InterchainService {
     private readonly icTxRepo: Repository<InterChainTransaction>,
     @InjectRepository(InterChainToken)
     private readonly icTokenRepo: Repository<InterChainToken>,
+    @InjectRepository(InterChainInTransaction)
+    private readonly icTokenDepositTxRepo: Repository<InterChainInTransaction>,
     @InjectRepository(OutTransaction)
     private readonly txRepo: Repository<OutTransaction>,
     @InjectRepository(Token)
@@ -293,10 +296,12 @@ export class InterchainService {
 
   async redeemInterChainToken(
     token: InterChainToken,
+    from: string,
     to: string,
     value: BigNumber,
   ) {
     const nonce = await this.getICWithdrawNonce(token, to);
+    // generate a `Withdraw` permit of Parking contract
     const permit = await InterChainPermitService.ParkingWithdrawConstuctor(
       this.parkingContract,
       token.origin.address,
@@ -305,12 +310,12 @@ export class InterchainService {
       value,
       nonce,
     );
-    // @todo: generate a `Withdraw` permit of Parking contract
-    // const icTx: InterChainTransaction = {
-    //     token, type: InterChainTransactionType.BURN,
-    //     from: , 
-    // }
-    // @todo: write a transaction to call `withdraw` on Parking contract
-    throw new NotImplementedException('T.B.I');
+    // write a transaction to call `withdraw` on Parking contract
+    await this.icTokenDepositTxRepo.save({
+      from, to, value: value.toString(),
+      icToken: { id: token.id }, token: { id: token.originId },
+      r: permit.r, s: permit.s, v: permit.v, deadline: permit.deadline,
+      txHash: null, status: TransactionStatus.PENDING,
+    })
   }
 }
