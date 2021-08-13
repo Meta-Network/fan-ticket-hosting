@@ -7,8 +7,8 @@ import { ClearingHouseService } from 'src/clearing-house/clearing-house.service'
 import { currentContracts } from 'src/constant/contracts';
 import { currentProvider } from 'src/constant/providers';
 import { InterChainInTransaction } from 'src/entities/InterChainInTransaction';
-import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
-import { ApproveOrder, MintOrder, TransactionOrder, TransferOrder, TxType } from 'src/token/typing';
+import { OutTransaction } from 'src/entities/OutTransaction';
+import { TransactionOrder, TxType } from 'src/token/typing';
 import { TransactionStatus } from 'src/types';
 import { FanTicketClearingHouse, FanTicketClearingHouse__factory } from 'src/types/contracts';
 import { Repository } from 'typeorm';
