@@ -29,7 +29,8 @@ interface InterChainFanTicketInterface extends ethers.utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "burnBySig(address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "burn(address,uint256)": FunctionFragment;
+    "burnBySig(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
@@ -79,8 +80,13 @@ interface InterChainFanTicketInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
+    functionFragment: "burn",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "burnBySig",
     values: [
+      string,
       string,
       BigNumberish,
       BigNumberish,
@@ -184,6 +190,7 @@ interface InterChainFanTicketInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnBySig", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
@@ -223,7 +230,7 @@ interface InterChainFanTicketInterface extends ethers.utils.Interface {
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
-    "InterChainFanTicketBurnt(address,uint256)": EventFragment;
+    "InterChainFanTicketBurnt(address,address,uint256)": EventFragment;
     "InterChainFanTicketMint(address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
@@ -302,8 +309,15 @@ export class InterChainFanTicket extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    burn(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     burnBySig(
       from: string,
+      to: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -422,8 +436,15 @@ export class InterChainFanTicket extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  burn(
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   burnBySig(
     from: string,
+    to: string,
     amount: BigNumberish,
     deadline: BigNumberish,
     v: BigNumberish,
@@ -542,8 +563,15 @@ export class InterChainFanTicket extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    burn(
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     burnBySig(
       from: string,
+      to: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -647,8 +675,12 @@ export class InterChainFanTicket extends BaseContract {
 
     InterChainFanTicketBurnt(
       who?: string | null,
+      burntToTarget?: null,
       value?: null
-    ): TypedEventFilter<[string, BigNumber], { who: string; value: BigNumber }>;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { who: string; burntToTarget: string; value: BigNumber }
+    >;
 
     InterChainFanTicketMint(
       who?: string | null,
@@ -690,8 +722,15 @@ export class InterChainFanTicket extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    burn(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     burnBySig(
       from: string,
+      to: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -820,8 +859,15 @@ export class InterChainFanTicket extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    burn(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     burnBySig(
       from: string,
+      to: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
