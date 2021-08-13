@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Get } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Get, Query } from '@nestjs/common';
 import { Controller, NotFoundException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
@@ -107,5 +107,22 @@ export class InterchainController {
         // create mint permit for interchain token
         const permit = await this.service.mint(interchainToken, body.to, body.value as BigNumber, parkingTx);
         return { permit }
+    }
+
+    @Post('/:tokenId/:chainId/burn')
+    async checkLogsInTx(
+        @Param('tokenId', ParseIntPipe) tokenId: number,
+        @Param('chainId', ParseChainIdPipe) chainId: ChainId,
+        @Query('txHash') txHash: string
+    ): Promise<any> {
+        if (!txHash) throw new BadRequestException("Missing query `txHash`");
+        const interchainToken = await this.service.getInterChainToken(tokenId, chainId)
+        if (!interchainToken) {
+            throw new NotFoundException(`Token not found on chainId ${chainId}`)
+        }
+        // transfer original token to Parking
+        await this.service.checkInterChainTokenWithdraw(chainId, txHash)
+        // create mint permit for interchain token
+        return { msg: 'ok' }
     }
 }

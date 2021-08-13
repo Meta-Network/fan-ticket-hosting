@@ -23,6 +23,7 @@ import { OutTransaction, TransactionType } from 'src/entities/OutTransaction';
 import { Token } from 'src/entities/Token';
 import { TransactionStatus } from 'src/types';
 import {
+  InterChainFanTicket,
   InterChainFanTicketFactory__factory,
   InterChainFanTicket__factory,
   InterChainParking,
@@ -224,10 +225,11 @@ export class InterchainService {
    * @param txHash the transaction hash of burn in otherchain
    */
   async checkInterChainTokenWithdraw(chain: ChainId, txHash: string) {
-    // @todo: check is tx exist in DB or not
-    const matchedBurn = await this.icTxRepo.find({
+    // check is tx exist in DB or not
+    const matchedBurn = await this.icTxRepo.findOne({
       txHash,
     });
+    console.info('matchedBurn', matchedBurn)
     if (matchedBurn) {
       throw new BadRequestException('Tx is already in the DB');
     }
@@ -241,12 +243,16 @@ export class InterchainService {
     const icToken = await this.icTokenRepo.findOne({
       where: {
         address: receipt.to,
+        chainId: chain
       },
     });
 
     if (!icToken) {
       throw new Error("Sorry but it seems it's not our interchained token.");
     }
+    const icTokenContract = InterChainFanTicket__factory.connect(icToken.address, providers[icToken.chainId]);
+    const parsedLogs = receipt.logs.map(log => icTokenContract.interface.parseLog(log))
+    console.info('parsedLogs', parsedLogs)
     // @todo: check txHash is burnt or not & parse event from receipt
     throw new NotImplementedException('T.B.I');
   }
