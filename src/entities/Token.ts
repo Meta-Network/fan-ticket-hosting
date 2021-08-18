@@ -28,6 +28,9 @@ export class Token {
   symbol: string;
 
   @Column()
+  logoURI: string;
+
+  @Column()
   totalSupply: string;
 
   @OneToOne(
