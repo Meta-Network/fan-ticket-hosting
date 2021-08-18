@@ -1,5 +1,6 @@
 import { BadRequestException, Body, ConflictException, Get, Query } from '@nestjs/common';
 import { Controller, NotFoundException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -13,7 +14,7 @@ import { Repository } from 'typeorm';
 import { TokenService } from '../token.service';
 import { GetICTokenDto } from './dto';
 import { InterchainService } from './interchain.service';
-
+@ApiTags('InterChain Token')
 @Controller('token/interchain')
 export class InterchainController {
 

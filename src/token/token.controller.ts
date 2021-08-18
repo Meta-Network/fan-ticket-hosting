@@ -1,5 +1,5 @@
 import { Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -20,6 +20,7 @@ enum TransactionType {
   Mint = 'mint'
 }
 
+@ApiTags('token')
 @Controller('token')
 export class TokenController {
   constructor(
