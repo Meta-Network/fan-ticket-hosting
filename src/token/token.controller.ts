@@ -1,12 +1,14 @@
-import { Body, Controller, NotFoundException, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BigNumber } from 'ethers';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { currentChainId } from 'src/constant';
 import { CurrentUserId } from 'src/decorators/user.decorator';
 import { Account } from 'src/entities/Account';
 import { Token } from 'src/entities/Token';
 import { CheckTransactionPipe } from 'src/pipes/transactionDto.pipe';
+import { StandardTokenList, StandardTokenProfile } from 'src/types/token.type';
 import { Repository } from 'typeorm';
 import { CreateTokenDto } from './dto/CreateTokenDto';
 import { TransactionDto } from './dto/TokenTransactionDto';
@@ -27,6 +29,29 @@ export class TokenController {
     private readonly tokenRepo: Repository<Token>,
     private readonly service: TokenService,
   ) {}
+
+  @Get('')
+  // return a standard token list which comply TokenList's spec
+  // for more checkout: tokenlists.org
+  async getTokenList(): Promise<StandardTokenList> {
+    const tokensList = await this.tokenRepo.find();
+
+    const tokens : StandardTokenProfile[] = tokensList.map(({ name, symbol, address, ...t }) => {
+      return { chainId: currentChainId, name, symbol, decimals: 18, address, logoURI: '' }
+    })
+    return {
+      name: 'Meta Network FanTicket List',
+      timestamp: new Date().toISOString(),
+      version: {
+        major: 1,
+        minor: 1,
+        patch: 0
+      },
+      logoURI: "",
+      keywords: ['meta network', 'fanticket'],
+      tokens
+    }
+  }
 
 
   @UseGuards(JwtAuthGuard)
