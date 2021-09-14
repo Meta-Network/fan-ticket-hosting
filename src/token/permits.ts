@@ -22,6 +22,16 @@ export class PermitService {
         }
     }
 
+    /**
+     * Generate a permit for ClearingHouse to execute `transferFromBySig`
+     * @param token the token contract object
+     * @param from the sender of this transfer
+     * @param to the receipient of this transfer
+     * @param value the value of this transfer
+     * @param nonce the nonce of this transaction(related with the `from` and the `token`)
+     * @param validPeriod the period of permit's validity
+     * @returns a TransferOrder for ClearingHouse to handle
+     */
     static async TransferOrderConstuctor(
         token: FanTicketV2,
         from: Wallet,
@@ -76,6 +86,16 @@ export class PermitService {
         };
     }
 
+    /**
+     * Generate a permit for ClearingHouse to execute `mintFromBySig`
+     * @param token the token contract object
+     * @param from the minter of this mint
+     * @param to the receipient of this mint
+     * @param value the value of this mint
+     * @param nonce the nonce of this transaction(related with the `from` and the `token`)
+     * @param validPeriod the period of permit's validity
+     * @returns a MintOrder for ClearingHouse to handle
+     */
     static async MintOrderConstuctor(
         token: FanTicketV2,
         from: Wallet,
@@ -130,6 +150,16 @@ export class PermitService {
         };
     }
 
+    /**
+     * Generate a permit for ClearingHouse to execute `permit` (EIP-2612)
+     * @param fanTicket the token contract object
+     * @param theOwner the Owner of this token who acting the approve
+     * @param spender the spender of this approve
+     * @param targetAmount the value of this approve
+     * @param nonce the nonce of this transaction(related with the `from` and the `token`)
+     * @param validPeriod the period of permit's validity
+     * @returns a EIP-2612 permit for ClearingHouse to handle
+     */
     static async ApproveOrderConstructor(
         fanTicket: FanTicketV2,
         theOwner: Wallet,
@@ -187,6 +217,17 @@ export class PermitService {
         };
     }
 
+    /**
+     * Generate a permit as admin, to create a token
+     * @param factory the FanTicket Factory object
+     * @param adminWallet the wallet who is the admin of the factory
+     * @param name the name of the new token
+     * @param symbol the symbol of the new token
+     * @param owner the owner of the new token
+     * @param tokenId the tokenId in the database(for on-chain referrence)
+     * @param initialSupply the initial supply of creation
+     * @returns the creation permit for batching
+     */
     static async CreationPermitConstuctor(
         factory: FanTicketFactory,
         adminWallet: Wallet,

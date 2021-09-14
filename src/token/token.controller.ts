@@ -31,9 +31,13 @@ export class TokenController {
     private readonly service: TokenService,
   ) {}
 
+  /**
+   * `getTokenList`
+   * return a standard token list which comply TokenList's spec
+   * for more checkout: tokenlists.org
+   * @returns a list of tokens with TokenList standard
+   */
   @Get('')
-  // return a standard token list which comply TokenList's spec
-  // for more checkout: tokenlists.org
   async getTokenList(): Promise<StandardTokenList> {
     const tokensList = await this.tokenRepo.find();
 
@@ -55,12 +59,19 @@ export class TokenController {
   }
 
 
+  /**
+   * 
+   * @param ownerId 
+   * @param createTokenDto 
+   * @returns 
+   */
   @UseGuards(JwtAuthGuard)
   @Post('')
   async createToken(
     @CurrentUserId() ownerId: number,
     @Body() createTokenDto: CreateTokenDto,
   ): Promise<any> {
+    // @todo: return type
     const owner = await this.accRepo.findOne(ownerId);
     // const initialSupply = this.service.parseBigNumber(createTokenDto.initialSupply);
     await this.service.create(
@@ -72,6 +83,14 @@ export class TokenController {
     return { msg: 'ok' };
   }
 
+  /**
+   * 
+   * @param type the transaction type, `transfer` `approve` and `mint` are available
+   * @param ownerId the user who is acting this transaction, it only depends on the OAuth token from Meta Space
+   * @param tokenId the id of token which is using in a transaction
+   * @param transferDto data of a transaction
+   * @returns 
+   */
   @ApiQuery({ name: 'type', enum: TransactionType })
   @UseGuards(JwtAuthGuard)
   @Post(':tokenId/transaction/')
@@ -81,6 +100,7 @@ export class TokenController {
     @Param('tokenId', ParseIntPipe) tokenId: number,
     @Body(CheckTransactionPipe) transferDto: TransactionDto,
   ): Promise<any> {
+    // @todo: typing on returns
     const token = await this.tokenRepo.findOne(tokenId);
     if (!token) {
       throw new NotFoundException("No Such Token exist.")

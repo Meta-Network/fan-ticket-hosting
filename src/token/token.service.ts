@@ -44,6 +44,11 @@ export class TokenService {
     this.logger.verbose(`Permit Signer Wallet is ${this.#creationPermitSigner.address}`)
   }
 
+  /**
+   * a simple function to validate a token creation, Exception will be throwed if happened
+   * @param symbol the symbol of a new token
+   * @param owner the wallet address of the people who wish to issue a new token
+   */
   private async checkIsLegitToCreate(symbol: string, owner: Account): Promise<void> {
     const [matchedOwner, matchedSymbol] = await Promise.all([
       this.tokenRepo.findOne({ owner: { id: owner.id } }),
@@ -59,6 +64,14 @@ export class TokenService {
   }
 
 
+  /**
+   * Create Token, will create a creation permit on admin's behalf
+   * And save to the token list, let the cron handle the new token's creation all together.
+   * @param name the name of the new token
+   * @param symbol the symbol of the new token
+   * @param owner the owner who can issue the new token
+   * @param initialSupply the initial supply of the new token
+   */
   async create(
     name: string,
     symbol: string,
@@ -86,6 +99,14 @@ export class TokenService {
     await this.tokenRepo.save(token)
   }
 
+  /**
+   * get the nonce (sequence number) of Token transaction, 
+   * as Meta Transaction will need the `nonce` property to avoid replay attack.
+   * the nonce is depend on transactions in database made by the sender with the token
+   * @param token the token of transaction involved
+   * @param from the user of transaction involved
+   * @returns the nonce for the token and the user
+   */
   async getNonceOf(token: Token, from: Account): Promise<number> {
     const userTxs = await this.txRepo.find({
       where: { token: { id: token.id }, from: { id: from.id } },
@@ -94,6 +115,12 @@ export class TokenService {
     return userTxs.length;
   }
 
+  /**
+   * Unlock the wallet with keystore and password
+   * @param keystore the keystore object string
+   * @param password the password that unlock the wallet
+   * @returns a active wallet
+   */
   private async _unlockWallet(keystore: string, password: string): Promise<Wallet> {
     try {
       const wallet = await Wallet.fromEncryptedJson(keystore, password)     
