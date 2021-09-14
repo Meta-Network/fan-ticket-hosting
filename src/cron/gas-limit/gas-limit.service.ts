@@ -10,6 +10,10 @@ export class GasLimitService {
         this.updateLatestGasLimit()
     }
 
+    /**
+     * simple function. Just update the `latestSafeGasLimit` every minutes
+     * in order to share the `latestSafeGasLimit` for other modules
+     */
     @Cron(CronExpression.EVERY_MINUTE)
     async updateLatestGasLimit(): Promise<void> {
         const block = await currentProvider.getBlock('latest');

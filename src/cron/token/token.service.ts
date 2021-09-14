@@ -35,6 +35,11 @@ export class TokenService {
         this.logger.verbose(`Operator Wallet is ${this.#issueOperator.address}`)
     }
 
+    /**
+     * handle the Token Creation request(s) all together
+     * by using Multicall contract.
+     * we use signature to detect is admin's approved or not
+     */
     @Cron(CronExpression.EVERY_5_MINUTES)
     async handleTokenIssueRequest(): Promise<void> {
         // a software lock, avoid race condition
@@ -101,6 +106,9 @@ export class TokenService {
         this.lock = false;
   }
 
+  /**
+   * check issuing tokens are created successfully or not
+   */
   @Cron(CronExpression.EVERY_MINUTE)
     async checkSentIssuing(): Promise<void> {
         const sendingTokens = await this.tokenRepo.find({

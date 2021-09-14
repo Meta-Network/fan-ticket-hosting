@@ -42,6 +42,11 @@ export class ClearingService {
         );
     }
 
+    /**
+     * find and convert the transactions data of parkijg withdraw(parking => user original token account)
+     * in order for `clearingTransactions` to handle
+     * @returns pending transactions
+     */
     async findAndParseICTokenWithdraw(): Promise<{parsedOrder: TransactionOrder[], ids: number[]}> {
         const pendingWithdrawl = await this.icWithdrawRepo.find({
             where: {status: TransactionStatus.PENDING,},
@@ -60,6 +65,10 @@ export class ClearingService {
         return { parsedOrder, ids: pendingWithdrawl.map(d => d.id) }
     }
 
+    /**
+     * clearing any transaction happened in `currentProvider`
+     * including approve / transfer 
+     */
     @Cron(CronExpression.EVERY_MINUTE)
     async clearingTransactions(): Promise<void> {
         // a software lock, avoid race condition
@@ -89,6 +98,7 @@ export class ClearingService {
         // const orders = this.chService.transactionParser(pendingTxs)
         const tx = await this.clearingHouse.handleTransferOrders(pendingTxs);
 
+        // marking these txs as `SENDING`
         if (pendingTokenTxs.length > 0) 
             await this.txRepo.update(pendingTokenTxs.map(t => t.id), {
                 txHash: tx.hash,
@@ -105,6 +115,9 @@ export class ClearingService {
         this.lock = false;
     }
 
+    /**
+     * check previous `SENDING` txs are success or not.
+     */
     @Cron(CronExpression.EVERY_30_SECONDS)
     async checkSentIssuing(): Promise<void> {
         const sendingTxs = await this.txRepo.find({
@@ -127,6 +140,9 @@ export class ClearingService {
         })
     }
 
+    /**
+     * check previous `SENDING` ic withdraw(ic token burnt, parking => user's origin token wallet) txs are success or not.
+     */
     @Cron(CronExpression.EVERY_30_SECONDS)
     async checkWithdrawFromParkingTx(): Promise<void> {
         const sendingTxs = await this.icWithdrawRepo.find({
