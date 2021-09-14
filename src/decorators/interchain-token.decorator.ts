@@ -2,6 +2,9 @@ import { BadRequestException } from "@nestjs/common";
 import { InterChainToken } from "src/entities/InterChainToken";
 import { TransactionStatus } from "src/types";
 
+/**
+ * a decorator that only check the 1st parameter is `InterChainToken` or not
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const OnlyCreatedICToken = (_: unknown, _propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;

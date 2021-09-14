@@ -2,6 +2,9 @@ import { BadRequestException } from "@nestjs/common";
 import { Token } from "src/entities/Token";
 import { TransactionStatus } from "src/types";
 
+/**
+ * a decorator that only check the 1st parameter is `Token` or not
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const OnlyPublishedToken = (_: unknown, _propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
