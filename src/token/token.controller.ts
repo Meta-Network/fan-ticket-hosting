@@ -61,8 +61,8 @@ export class TokenController {
 
   /**
    * 
-   * @param ownerId 
-   * @param createTokenDto 
+   * @param ownerId the owner's id, determined by JWT Token
+   * @param createTokenDto the data to create token
    * @returns 
    */
   @UseGuards(JwtAuthGuard)

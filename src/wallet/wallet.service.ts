@@ -24,6 +24,11 @@ export class WalletService {
     return Wallet.fromEncryptedJson(encryptedWallet, password);
   }
 
+  /**
+   * create Wallet For user id
+   * @param id the user id
+   * @param encryptPasswd the password to encrypt the wallet
+   */
   async createWalletFor(id: number, encryptPasswd: string): Promise<void> {
     const matchedWallet = await this.walletAccountRepo.findOne(id);
     if (matchedWallet) {
@@ -41,9 +46,9 @@ export class WalletService {
   }
 
   /**
-   * 这里的 `nonce` 是钱包在区块链网络上的交易顺序，并非元交易的 Nonce。
-   * @param address 托管的钱包地址
-   * @returns 
+   * `nonce` here is the tx nonce of the wallet in ethereum network，not the Nonce for our token meta transaction
+   * @param address the hosting wallet address
+   * @returns `currentNonce` and `nextNonce`
    */
   async useEthNonceOf(
     address: string,
